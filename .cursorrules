@@ -1,0 +1,23 @@
+# Cursor Rules — Cognitive OS v3.0 (Compact)
+> Full spec: /home/ae/AE/AGENTS.md
+
+## Core
+- Complexity classification: T0 (trivial) → T4 (existential). Route depth accordingly.
+- Re-read files before editing. Never edit from memory after 10+ messages.
+- Type check + lint + test before reporting complete. State if no tooling exists.
+- Functions <50 lines, files <800 lines, nesting <4 levels. Immutability critical.
+- Never commit secrets. Never push without instruction. `git status` before destructive ops.
+
+## Stack
+- bun.lock → bun | pnpm-lock.yaml → pnpm | package-lock.json → npm. Never mix.
+- TS: functional hooks, @/ imports, PascalCase components, no `any` without comment.
+- Python: PEP 8, ruff, type hints, f-strings, specific exceptions.
+
+## Merge CLI
+- `merge search-tools "<intent>" --connector X` → search in parallel
+- `merge execute-tool <name> '<json>'` → execute
+- Never guess tool names. Pass null for optional params.
+
+## GitNexus
+- `gitnexus_impact` before editing any symbol. Warn on HIGH/CRITICAL risk.
+- `gitnexus_detect_changes` before commit. Use `gitnexus_rename` not find-replace.

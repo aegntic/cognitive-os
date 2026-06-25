@@ -1,0 +1,15 @@
+# Ignore everything by default
+*
+
+# Allow Cognitive OS spec files
+!AGENTS.md
+!.factory/AGENTS.md
+!CLAUDE.md
+!.cursorrules
+!CODEX.md
+!GEMINI.md
+!.gitignore
+!README.md
+
+# Allow .factory directory structure
+!.factory/
