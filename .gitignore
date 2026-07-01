@@ -13,3 +13,4 @@
 
 # Allow .factory directory structure
 !.factory/
+.gstack/
