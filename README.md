@@ -3,7 +3,7 @@
 [![CI](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml/badge.svg)](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/aegntic/cognitive-os/actions/workflows/codeql.yml/badge.svg)](https://github.com/aegntic/cognitive-os/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-80%20passing-brightgreen)](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-106%20passing-brightgreen)](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml)
 
 > The future is not predicted. It is compiled.
 
