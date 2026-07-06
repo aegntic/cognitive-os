@@ -11,6 +11,8 @@
 !.gitignore
 !README.md
 !CONTRIBUTING.md
+!CHANGELOG.md
+!LICENSE
 !.env.example
 
 # Allow .factory directory structure

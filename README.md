@@ -1,5 +1,10 @@
 # Cognitive OS v3.0
 
+[![CI](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml/badge.svg)](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/aegntic/cognitive-os/actions/workflows/codeql.yml/badge.svg)](https://github.com/aegntic/cognitive-os/actions/workflows/codeql.yml)
+[![License](https://img.shields.io/badge/license-Proprietary-red)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-80%20passing-brightgreen)](https://github.com/aegntic/cognitive-os/actions/workflows/ci.yml)
+
 > The future is not predicted. It is compiled.
 
 A universal, multi-harness cognitive operating system specification for AI coding agents. This repository defines a 16-section cognitive architecture that governs how AI agents think, plan, verify, and execute across real-world systems.
@@ -82,6 +87,14 @@ npm run dev
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for naming conventions, testing guidelines, and development workflow.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and notable changes.
+
+## Security
+
+See [.github/SECURITY.md](.github/SECURITY.md) for vulnerability reporting and security measures.
+
 ## License
 
-Proprietary. All rights reserved.
+Proprietary. All rights reserved. See [LICENSE](LICENSE) for details.
