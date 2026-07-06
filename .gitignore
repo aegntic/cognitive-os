@@ -24,7 +24,7 @@
 !package-lock.json
 !tsconfig.json
 !vitest.config.ts
-!.markdownlint.json
+!.markdownlint-cli2.jsonc
 !.prettierrc
 !.prettierignore
 !.husky/
