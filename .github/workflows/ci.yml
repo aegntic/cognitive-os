@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, Format & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Run tests
+        run: npm test -- --reporter=verbose
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 14
+
+  link-check:
+    name: Check Markdown Links
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --max-concurrency 16 "*.md" "docs/**/*.md" ".github/**/*.md"
+          fail: true
+
+  tech-debt-scan:
+    name: TODO/FIXME Scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for TODOs without issue references
+        run: |
+          echo "Scanning for untracked TODOs..."
+          FOUND=$(grep -rn "TODO\|FIXME\|HACK\|XXX" --include="*.md" . \
+            --exclude-dir=".git" \
+            --exclude-dir="node_modules" \
+            | grep -v "TODO(#" \
+            | grep -v "TODO(TICKET" \
+            | grep -v "AGENTS.md" \
+            || true)
+          if [ -n "$FOUND" ]; then
+            echo "WARNING: Found TODOs without issue references:"
+            echo "$FOUND"
+          else
+            echo "No untracked TODOs found."
+          fi
+
+  file-size-check:
+    name: Large File Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for large files
+        run: |
+          MAX_SIZE=51200  # 50KB
+          FOUND=0
+          while IFS= read -r file; do
+            SIZE=$(wc -c < "$file" 2>/dev/null || echo 0)
+            if [ "$SIZE" -gt "$MAX_SIZE" ]; then
+              echo "WARNING: $file is $SIZE bytes (max: $MAX_SIZE)"
+              FOUND=1
+            fi
+          done < <(find . -type f \
+            -not -path './.git/*' \
+            -not -path './node_modules/*' \
+            -not -path './.git')
+          if [ "$FOUND" -eq 1 ]; then
+            echo "Large files detected. Consider splitting or using Git LFS."
+          else
+            echo "All files within size limits."
+          fi
+
+  docs-validation:
+    name: AGENTS.md Consistency Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify AGENTS.md exists and is non-empty
+        run: |
+          if [ ! -f AGENTS.md ]; then
+            echo "ERROR: AGENTS.md not found"
+            exit 1
+          fi
+          LINES=$(wc -l < AGENTS.md)
+          if [ "$LINES" -lt 100 ]; then
+            echo "ERROR: AGENTS.md is only $LINES lines (minimum: 100)"
+            exit 1
+          fi
+          echo "AGENTS.md: $LINES lines - OK"
+
+      - name: Verify harness adapters reference master spec
+        run: |
+          for f in CLAUDE.md CODEX.md GEMINI.md .cursorrules .factory/AGENTS.md; do
+            if [ -f "$f" ]; then
+              if grep -q "AGENTS.md" "$f"; then
+                echo "$f references AGENTS.md - OK"
+              else
+                echo "WARNING: $f does not reference AGENTS.md"
+              fi
+            fi
+          done
+
+      - name: Verify build commands in README
+        run: |
+          if ! grep -q "npm test\|npm run" README.md 2>/dev/null; then
+            echo "WARNING: README.md does not document test/build commands"
+          else
+            echo "README.md documents build commands - OK"
+          fi
