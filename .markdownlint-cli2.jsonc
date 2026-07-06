@@ -5,7 +5,7 @@
     "MD013": false,
     "MD022": false,
     "MD024": {
-      "siblings_only": true
+      "siblings_only": true,
     },
     "MD031": false,
     "MD032": false,
@@ -14,7 +14,7 @@
     "MD040": false,
     "MD041": false,
     "MD047": false,
-    "MD060": false
+    "MD060": false,
   },
   "globs": [
     "AGENTS.md",
@@ -27,9 +27,7 @@
     ".factory/AGENTS.md",
     ".factory/skills/**/*.md",
     "docs/**/*.md",
-    ".github/**/*.md"
+    ".github/**/*.md",
   ],
-  "ignores": [
-    "node_modules/**"
-  ]
+  "ignores": ["node_modules/**"],
 }

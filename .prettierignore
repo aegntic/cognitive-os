@@ -3,3 +3,12 @@ dist/
 build/
 test-results/
 *.log
+
+# Spec files have their own formatting conventions
+AGENTS.md
+CLAUDE.md
+CODEX.md
+GEMINI.md
+.cursorrules
+.factory/AGENTS.md
+package-lock.json

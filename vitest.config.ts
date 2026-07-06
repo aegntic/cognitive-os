@@ -1,16 +1,16 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
     globals: true,
-    include: ["tests/**/*.test.ts"],
+    include: ['tests/**/*.test.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
-    reporters: ["default", "verbose"],
+    reporters: ['default', 'verbose'],
     coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["tests/**"],
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['tests/**'],
       thresholds: {
         lines: 80,
         functions: 80,
@@ -19,4 +19,4 @@ export default defineConfig({
       },
     },
   },
-});
+})
