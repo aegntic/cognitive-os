@@ -1,0 +1,36 @@
+{
+  "name": "cognitive-os",
+  "version": "3.0.0",
+  "description": "Universal multi-harness cognitive operating system specification for AI coding agents",
+  "private": true,
+  "scripts": {
+    "dev": "npm run validate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "markdownlint-cli2",
+    "lint:fix": "markdownlint-cli2 --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate": "npm run lint && npm run format:check && npm test",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "markdownlint-cli2": "^0.16.0",
+    "prettier": "^3.4.2",
+    "vitest": "^2.1.8"
+  },
+  "lint-staged": {
+    "*.md": [
+      "markdownlint-cli2 --fix",
+      "prettier --write --ignore-path .prettierignore"
+    ],
+    "*.{json,yml,yaml}": [
+      "prettier --write --ignore-path .prettierignore"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

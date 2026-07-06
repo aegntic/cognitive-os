@@ -1,0 +1,19 @@
+# Cognitive OS Code Owners
+# These teams/users are automatically requested for review on PRs
+
+# Master specification
+AGENTS.md                    @aegntic
+
+# Harness adapters
+CLAUDE.md                    @aegntic
+CODEX.md                     @aegntic
+GEMINI.md                    @aegntic
+.cursorrules                 @aegntic
+.factory/                    @aegntic
+
+# CI/CD and infrastructure
+.github/                     @aegntic
+docs/                        @aegntic
+
+# Default fallback
+*                            @aegntic

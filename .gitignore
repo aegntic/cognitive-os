@@ -10,7 +10,39 @@
 !GEMINI.md
 !.gitignore
 !README.md
+!CONTRIBUTING.md
+!.env.example
 
 # Allow .factory directory structure
 !.factory/
+!.factory/skills/
+!.factory/skills/**
 .gstack/
+
+# Allow project tooling
+!package.json
+!package-lock.json
+!tsconfig.json
+!vitest.config.ts
+!.markdownlint.json
+!.prettierrc
+!.prettierignore
+!.husky/
+!.husky/**
+
+# Allow tests
+!tests/
+!tests/**
+
+# Allow docs
+!docs/
+!docs/**
+
+# Allow GitHub infrastructure
+!.github/
+!.github/**
+!.devcontainer/
+!.devcontainer/**
+
+# Dependencies (never commit)
+node_modules/
