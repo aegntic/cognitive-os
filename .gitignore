@@ -48,3 +48,17 @@
 
 # Dependencies (never commit)
 node_modules/
+
+# Showcase projects (very early / WIP - Insidher etc.)
+!02_Showcase/
+!02_Showcase/**
+
+# Brik Pro - local-first agentic design tool (Vite + IndexedDB + LLM)
+!brik-pro/
+!brik-pro/**
+brik-pro/node_modules/
+brik-pro/dist/
+brik-pro/.env
+brik-pro/.env.*
+brik-pro/*.log
+
