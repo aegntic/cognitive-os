@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Insidher</string>
+    <string name="luxe_tagline">Anita Simpson remembers so you don\'t have to</string>
+    <string name="inquiries">Who Remembers</string>
+    <string name="schedule">Schedule</string>
+    <string name="luxe">Anita</string>
+    <string name="settings">Settings</string>
+    <!-- Pure professional coordination only; zero non-professional language -->
+</resources>

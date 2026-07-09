@@ -1,0 +1,45 @@
+# Gradle
+.gradle/
+build/
+
+# Local config
+local.properties
+*.iml
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Android
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+
+# Keystore / signing
+*.jks
+*.keystore
+luxe-release.keystore
+
+# Misc
+*.log
+.DS_Store
+Thumbs.db
+
+# Project specific (WIP)
+simulation/
+audit/
+assets/
+metadata/
+package/
+*.png
+*.jpg
+*.zip
+
+# Keep source only for this early snapshot
+# (revisit when ready)

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.LuxeThreshold" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Deep obsidian background, warm pearl accents -->
+        <item name="android:colorBackground">#0C0C0E</item>
+        <item name="colorPrimary">#E8D9C0</item>
+        <item name="colorOnPrimary">#0C0C0E</item>
+        <item name="colorSurface">#1A1A1F</item>
+        <item name="colorOnSurface">#F5F0E6</item>
+        <item name="colorSecondary">#C8B8A0</item>
+        <item name="android:statusBarColor">#0C0C0E</item>
+        <item name="android:navigationBarColor">#0C0C0E</item>
+    </style>
+</resources>
