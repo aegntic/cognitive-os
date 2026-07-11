@@ -1,8 +1,13 @@
-# Luxe Threshold
+# Insidher (early MVP)
 
-Premium, discreet private scheduling and intelligent inquiry coordination for independent professionals.
+Private, discreet, personalized professional receptionist + PA.  
+Clients meet a customizable luxury front desk; the owner works with **Anita**.
 
-Calm. Elegant. Ultra-premium. Full sovereignty preserved.
+Full product scope, goals, platforms (iOS / Android / browser), paywall, referrals, themes, and agent-ready work packages:
+
+**[docs/INSIDHER_PRODUCT_SCOPE.md](docs/INSIDHER_PRODUCT_SCOPE.md)**
+
+Calm. Elegant. Ultra-premium. Discreet.
 
 ## Build
 
