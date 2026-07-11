@@ -115,40 +115,25 @@ fun LuxeThresholdApp() {
                         },
                         bottomBar = {
                             NavigationBar(containerColor = Color(0xFF141210)) {
-                                NavigationBarItem(selected = selectedTab == 0, onClick = { selectedTab = 0 }, label = { Text("Who Remembers") }, icon = { })
-                                NavigationBarItem(selected = selectedTab == 1, onClick = { selectedTab = 1 }, label = { Text("Anita") }, icon = { })
-                                NavigationBarItem(selected = selectedTab == 2, onClick = { selectedTab = 2 }, label = { Text("Schedule") }, icon = { })
+                                NavigationBarItem(selected = selectedTab == 0, onClick = { selectedTab = 0 }, label = { Text("Onboard") }, icon = { })
+                                NavigationBarItem(selected = selectedTab == 1, onClick = { selectedTab = 1 }, label = { Text("Clients") }, icon = { })
+                                NavigationBarItem(selected = selectedTab == 2, onClick = { selectedTab = 2 }, label = { Text("Bookings") }, icon = { })
+                                NavigationBarItem(selected = selectedTab == 3, onClick = { selectedTab = 3 }, label = { Text("Profile") }, icon = { })
+                                NavigationBarItem(selected = selectedTab == 4, onClick = { selectedTab = 4 }, label = { Text("Active Ads") }, icon = { })
+                                NavigationBarItem(selected = selectedTab == 5, onClick = { selectedTab = 5 }, label = { Text("Draft Ads") }, icon = { })
                             }
                         }
                     ) { padding ->
                         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
                             when (selectedTab) {
-                                0 -> InquiriesScreen(
+                                0 -> OnboardScreen(vault = vault, activeUserEmail = activeUserEmail)
+                                1 -> ClientsScreen(
                                     clients = clients,
                                     inquiries = inquiries,
                                     log = log,
-                                    onProcess = { inq, clientEmail ->
-                                        scope.launch {
-                                            val ctx = vault.getClientContext(clientEmail)
-                                            val inqMem = MemoryEntry(id = "${inq.id}-inq", clientId = clientEmail, type = "inquiry", content = inq.text, timestamp = inq.date, tags = listOf("inquiry"), handoffLevel = "ai")
-                                            vault.appendMemory(clientEmail, inqMem)
-                                            val action = AnitaCore.decideWithContext(inq.text, ctx, useOnDevice)
-                                            val jsonStr = gson.toJson(mapOf("action" to action.action, "confidence" to action.confidence, "reason" to action.reason, "details" to action.details, "sovereignty_handoff" to action.sovereignty_handoff))
-                                            val validated = AnitaCore.enforceJson(jsonStr)
-                                            if (validated != null) {
-                                                val decMem = MemoryEntry(id = "${inq.id}-dec", clientId = clientEmail, type = "decision", content = "${validated.action}: ${validated.reason}", timestamp = inq.date, tags = listOf("decision", validated.action), handoffLevel = validated.sovereignty_handoff["level"] as? String ?: "ai")
-                                                vault.appendMemory(clientEmail, decMem)
-                                            }
-                                            val outcome = if (validated != null) "Anita: ${validated.action} (conf=${validated.confidence}) | handoff: ${validated.sovereignty_handoff["level"]} | ${validated.reason} ${if (useOnDevice) "(on-device)" else ""}" else "Parse error - forced handoff"
-                                            log = log + "Inquiry ${inq.id}: $outcome"
-                                            vault.appendLog("Inquiry ${inq.id}: $outcome")
-                                            if (validated?.sovereignty_handoff?.get("level") != "ai") {
-                                                val handoffMsg = "Sovereignty handoff triggered to human"
-                                                log = log + handoffMsg
-                                                vault.appendLog(handoffMsg)
-                                            }
-                                        }
-                                    },
+                                    vault = vault,
+                                    scope = scope,
+                                    useOnDevice = useOnDevice,
                                     onAddClient = { name, email ->
                                         scope.launch {
                                             val c = vault.getOrCreateClient(email)
@@ -163,11 +148,10 @@ fun LuxeThresholdApp() {
                                         }
                                     }
                                 )
-                                1 -> AnitaScreen(log = log, onAskAnita = { text, email ->
-                                    val ctx = vault.getClientContext(email)
-                                    AnitaCore.decideWithContext(text, ctx, useOnDevice)
-                                }, clientContextProvider = { email -> vault.getClientContext(email) })
-                                2 -> ScheduleScreen(log = log)
+                                2 -> BookingsScreen(vault = vault, activeUserEmail = activeUserEmail)
+                                3 -> ProfileScreen(vault = vault, activeUserEmail = activeUserEmail, onNavigateToSettings = { navigateTo(AppScreen.Settings) })
+                                4 -> AdsScreen(activeUserEmail = activeUserEmail)
+                                5 -> AdsScreen(activeUserEmail = activeUserEmail)
                             }
                         }
                     }
