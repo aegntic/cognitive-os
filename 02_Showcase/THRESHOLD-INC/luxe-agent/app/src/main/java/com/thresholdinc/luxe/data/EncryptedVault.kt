@@ -4,8 +4,11 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import com.thresholdinc.luxe.domain.Client
+import com.thresholdinc.luxe.domain.DepositInfo
 import com.thresholdinc.luxe.domain.Inquiry
 import com.thresholdinc.luxe.domain.MemoryEntry
+import com.thresholdinc.luxe.domain.SmsConversation
+import com.thresholdinc.luxe.domain.SmsMessage
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SQLiteOpenHelper
 import java.security.KeyStore
@@ -21,13 +24,17 @@ class EncryptedVault(private val context: Context) : SQLiteOpenHelper(context, D
 
     companion object {
         private const val DATABASE_NAME = "luxe_vault.db"
-        private const val DATABASE_VERSION = 3
+        private const val DATABASE_VERSION = 4
         private const val TABLE_INQUIRIES = "inquiries"
         private const val TABLE_LOGS = "audit_logs"
         private const val TABLE_USERS = "users"
         private const val TABLE_CONFIG = "config"
         private const val TABLE_CLIENTS = "clients"
         private const val TABLE_MEMORIES = "client_memories"
+        private const val TABLE_DRAFTS = "draft_replies"
+        // SMS conversation tables
+        private const val TABLE_SMS_CONVERSATIONS = "sms_conversations"
+        private const val TABLE_SMS_MESSAGES = "sms_messages"
     }
 
     private var db: SQLiteDatabase? = null
@@ -115,6 +122,45 @@ class EncryptedVault(private val context: Context) : SQLiteOpenHelper(context, D
                 handoff_level TEXT
             )
         """.trimIndent())
+        db.execSQL("""
+            CREATE TABLE $TABLE_DRAFTS (
+                id TEXT PRIMARY KEY,
+                inquiry_id TEXT,
+                client_id TEXT,
+                reply_text TEXT,
+                status TEXT,
+                timestamp TEXT
+            )
+        """.trimIndent())
+        db.execSQL("""
+            CREATE TABLE $TABLE_SMS_CONVERSATIONS (
+                client_id TEXT PRIMARY KEY,
+                client_name TEXT,
+                client_phone TEXT,
+                unread_count INTEGER DEFAULT 0,
+                last_activity INTEGER
+            )
+        """.trimIndent())
+        db.execSQL("""
+            CREATE TABLE $TABLE_SMS_MESSAGES (
+                id TEXT PRIMARY KEY,
+                client_id TEXT NOT NULL,
+                direction TEXT NOT NULL,
+                body TEXT NOT NULL,
+                timestamp INTEGER NOT NULL,
+                status TEXT NOT NULL,
+                deposit_amount_cents INTEGER DEFAULT 0,
+                deposit_currency TEXT DEFAULT 'USD',
+                deposit_payment_link TEXT,
+                deposit_payment_method TEXT,
+                deposit_confirmed INTEGER DEFAULT 0,
+                deposit_confirmed_at INTEGER DEFAULT 0,
+                deposit_reference TEXT,
+                FOREIGN KEY(client_id) REFERENCES $TABLE_CLIENTS(id) ON DELETE CASCADE
+            )
+        """.trimIndent())
+        db.execSQL("CREATE INDEX idx_sms_messages_client ON $TABLE_SMS_MESSAGES(client_id)")
+        db.execSQL("CREATE INDEX idx_sms_messages_timestamp ON $TABLE_SMS_MESSAGES(timestamp)")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -124,6 +170,9 @@ class EncryptedVault(private val context: Context) : SQLiteOpenHelper(context, D
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CONFIG")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CLIENTS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_MEMORIES")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_DRAFTS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_SMS_CONVERSATIONS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_SMS_MESSAGES")
         onCreate(db)
     }
 
@@ -158,7 +207,7 @@ class EncryptedVault(private val context: Context) : SQLiteOpenHelper(context, D
         val exists = cursor.moveToFirst()
         cursor.close()
         if (!exists) return false
-        
+
         db.execSQL("UPDATE $TABLE_USERS SET password = ? WHERE email = ?", arrayOf(password, email.lowercase().trim()))
         return true
     }
@@ -321,6 +370,131 @@ class EncryptedVault(private val context: Context) : SQLiteOpenHelper(context, D
         } else {
             "$base\nRecent vault memories:\n$memText"
         }
+    }
+
+    // === SMS Conversation methods ===
+
+    fun saveSmsConversation(conversation: SmsConversation) {
+        val db = openEncrypted()
+        db.beginTransaction()
+        try {
+            db.execSQL(
+                "INSERT OR REPLACE INTO $TABLE_SMS_CONVERSATIONS (client_id, client_name, client_phone, unread_count, last_activity) VALUES (?, ?, ?, ?, ?)",
+                arrayOf(conversation.clientId, conversation.clientName, conversation.clientPhone, conversation.unreadCount.toString(), conversation.lastActivity.toString())
+            )
+            // Delete old messages for this client
+            db.execSQL("DELETE FROM $TABLE_SMS_MESSAGES WHERE client_id = ?", arrayOf(conversation.clientId))
+            // Insert new messages
+            for (msg in conversation.messages) {
+                val deposit = msg.depositInfo
+                db.execSQL(
+                    """INSERT INTO $TABLE_SMS_MESSAGES 
+                       (id, client_id, direction, body, timestamp, status, deposit_amount_cents, deposit_currency, deposit_payment_link, deposit_payment_method, deposit_confirmed, deposit_confirmed_at, deposit_reference) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""".trimIndent(),
+                    arrayOf(
+                        msg.id, msg.clientId, msg.direction.name, msg.body, msg.timestamp.toString(),
+                        msg.status.name,
+                        deposit?.amountCents?.toString() ?: "0",
+                        deposit?.currency ?: "USD",
+                        deposit?.paymentLink ?: "",
+                        deposit?.paymentMethod ?: "",
+                        if (deposit?.confirmed == true) "1" else "0",
+                        deposit?.confirmedAt?.toString() ?: "0",
+                        deposit?.reference ?: ""
+                    )
+                )
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun getSmsConversation(clientId: String): SmsConversation? {
+        val db = openEncrypted()
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_SMS_CONVERSATIONS WHERE client_id = ?", arrayOf(clientId))
+        if (!cursor.moveToFirst()) {
+            cursor.close()
+            return null
+        }
+        val conv = SmsConversation(
+            clientId = cursor.getString(0),
+            clientName = cursor.getString(1),
+            clientPhone = cursor.getString(2),
+            unreadCount = cursor.getInt(3),
+            lastActivity = cursor.getLong(4),
+            messages = emptyList() // Load separately
+        )
+        cursor.close()
+
+        // Load messages
+        val msgCursor = db.rawQuery("SELECT * FROM $TABLE_SMS_MESSAGES WHERE client_id = ? ORDER BY timestamp ASC", arrayOf(clientId))
+        val messages = mutableListOf<SmsMessage>()
+        if (msgCursor.moveToFirst()) {
+            do {
+                val deposit = if (msgCursor.getLong(6) > 0) DepositInfo(
+                    amountCents = msgCursor.getLong(6),
+                    currency = msgCursor.getString(7),
+                    paymentLink = msgCursor.getString(8).takeIf { it.isNotBlank() },
+                    paymentMethod = msgCursor.getString(9).takeIf { it.isNotBlank() },
+                    confirmed = msgCursor.getInt(10) == 1,
+                    confirmedAt = if (msgCursor.getLong(11) > 0) msgCursor.getLong(11) else null,
+                    reference = msgCursor.getString(12).takeIf { it.isNotBlank() }
+                ) else null
+
+                messages.add(SmsMessage(
+                    id = msgCursor.getString(0),
+                    clientId = msgCursor.getString(1),
+                    direction = SmsMessage.Direction.valueOf(msgCursor.getString(2)),
+                    body = msgCursor.getString(3),
+                    timestamp = msgCursor.getLong(4),
+                    status = SmsMessage.SmsStatus.valueOf(msgCursor.getString(5)),
+                    depositInfo = deposit
+                ))
+            } while (msgCursor.moveToNext())
+        }
+        msgCursor.close()
+        return conv.copy(messages = messages)
+    }
+
+    fun getAllSmsConversations(): List<SmsConversation> {
+        val db = openEncrypted()
+        val cursor = db.rawQuery("SELECT client_id FROM $TABLE_SMS_CONVERSATIONS", null)
+        val list = mutableListOf<SmsConversation>()
+        if (cursor.moveToFirst()) {
+            do {
+                getSmsConversation(cursor.getString(0))?.let { list.add(it) }
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun storeDraftReply(inquiryId: String, clientId: String, reply: String) {
+        val db = openEncrypted()
+        val id = "draft_${inquiryId}_${System.currentTimeMillis()}"
+        db.execSQL(
+            "INSERT OR REPLACE INTO $TABLE_DRAFTS (id, inquiry_id, client_id, reply_text, status, timestamp) VALUES (?, ?, ?, ?, ?, datetime('now'))",
+            arrayOf(id, inquiryId, clientId, reply, "pending")
+        )
+    }
+
+    fun getDraftReplies(clientId: String): List<String> {
+        val db = openEncrypted()
+        val cursor = db.rawQuery("SELECT reply_text FROM $TABLE_DRAFTS WHERE client_id = ? AND status = 'pending' ORDER BY timestamp DESC", arrayOf(clientId))
+        val list = mutableListOf<String>()
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(cursor.getString(0))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun markDraftSent(draftId: String) {
+        val db = openEncrypted()
+        db.execSQL("UPDATE $TABLE_DRAFTS SET status = 'sent' WHERE id = ?", arrayOf(draftId))
     }
 
     fun closeVault() {

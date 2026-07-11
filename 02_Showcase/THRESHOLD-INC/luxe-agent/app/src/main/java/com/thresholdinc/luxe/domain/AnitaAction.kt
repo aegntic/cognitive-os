@@ -13,7 +13,9 @@ data class Inquiry(
     val id: String,
     val text: String,
     val from: String,
-    val date: String
+    val date: String,
+    val channel: String = "manual",
+    val clientId: String? = null
 )
 
 data class Client(
@@ -22,7 +24,9 @@ data class Client(
     val email: String,
     val preferences: String = "{}",
     val sovereigntyLevel: String = "full",
-    val lastContact: String = ""
+    val lastContact: String = "",
+    val phoneNumber: String? = null,
+    val autoDraftEnabled: Boolean = false
 )
 
 data class MemoryEntry(
