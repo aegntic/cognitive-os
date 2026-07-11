@@ -90,7 +90,7 @@ fun LuxeThresholdApp() {
             }
             AppScreen.Onboarding -> OnboardingScreen(onNavigateToLogin = { navigateTo(AppScreen.Login) }, onNavigateToSignUp = { navigateTo(AppScreen.SignUp) })
             AppScreen.Login -> LoginScreen(vault = vault, onNavigateToRegister = { navigateTo(AppScreen.SignUp) }, onNavigateToForgotPassword = { navigateTo(AppScreen.ForgotPassword) }, onLoginSuccess = { email -> activeUserEmail = email; clearHistoryAndNavigate(AppScreen.MainApp) })
-            AppScreen.SignUp -> SignUpScreen(vault = vault, onNavigateToLogin = { navigateTo(AppScreen.Login) }, onNavigateToPrivacyPolicy = { navigateTo(AppScreen.PrivacyPolicy) }, onNavigateToTerms = { navigateTo(AppScreen.TermsOfService) }, onRegisterSuccess = { email -> activeUserEmail = email; clearHistoryAndNavigate(AppScreen.MainApp) })
+            AppScreen.SignUp -> SignUpScreen(vault = vault, onNavigateToLogin = { navigateTo(AppScreen.Login) }, onNavigateToPrivacyPolicy = { navigateTo(AppScreen.PrivacyPolicy) }, onNavigateToTerms = { navigateTo(AppScreen.TermsOfService) }, onSignUpSuccess = { email -> activeUserEmail = email; clearHistoryAndNavigate(AppScreen.MainApp) })
             AppScreen.ForgotPassword -> ForgotPasswordScreen(vault = vault, onNavigateToLogin = { navigateTo(AppScreen.Login) })
             AppScreen.PrivacyPolicy -> PrivacyPolicyScreen(onNavigateBack = { navigateBack() })
             AppScreen.TermsOfService -> TermsOfServiceScreen(onNavigateBack = { navigateBack() })

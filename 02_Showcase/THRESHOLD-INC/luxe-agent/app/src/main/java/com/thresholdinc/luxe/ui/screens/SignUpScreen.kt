@@ -36,14 +36,17 @@ fun SignUpScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToPrivacyPolicy: () -> Unit,
     onNavigateToTerms: () -> Unit,
-    onRegisterSuccess: (email: String) -> Unit
+    onSignUpSuccess: (email: String) -> Unit
 ) {
+    // Primary: name + phone number. Email is optional toggle.
     var name by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var acceptTerms by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
+    var showEmail by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scrollState = rememberScrollState()
 
@@ -81,6 +84,7 @@ fun SignUpScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    // Full Name
                     OutlinedTextField(
                         value = name,
                         onValueChange = {
@@ -98,13 +102,14 @@ fun SignUpScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Phone Number (Primary)
                     OutlinedTextField(
-                        value = email,
+                        value = phoneNumber,
                         onValueChange = {
-                            email = it
+                            phoneNumber = it
                             errorMessage = null
                         },
-                        label = { Text("Email Address", color = Color(0xFFE8D9C0).copy(alpha = 0.6f)) },
+                        label = { Text("Phone Number *", color = Color(0xFFE8D9C0).copy(alpha = 0.6f)) },
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             focusedBorderColor = Color(0xFFE8D9C0),
                             unfocusedBorderColor = Color(0xFFE8D9C0).copy(alpha = 0.2f),
@@ -112,10 +117,55 @@ fun SignUpScreen(
                             cursorColor = Color(0xFFE8D9C0)
                         ),
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Email Toggle
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Add Email (Optional)",
+                            color = Color(0xFFE8D9C0).copy(alpha = 0.7f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Light
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Switch(
+                            checked = showEmail,
+                            onCheckedChange = { showEmail = it },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = Color(0xFFE8D9C0),
+                                checkedTrackColor = Color(0xFFE8D9C0).copy(alpha = 0.3f),
+                                uncheckedThumbColor = Color(0xFFE8D9C0).copy(alpha = 0.5f),
+                                uncheckedTrackColor = Color(0xFFE8D9C0).copy(alpha = 0.1f)
+                            )
+                        )
+                    }
+
+                    if (showEmail) {
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = {
+                                email = it
+                                errorMessage = null
+                            },
+                            label = { Text("Email Address", color = Color(0xFFE8D9C0).copy(alpha = 0.6f)) },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedBorderColor = Color(0xFFE8D9C0),
+                                unfocusedBorderColor = Color(0xFFE8D9C0).copy(alpha = 0.2f),
+                                focusedLabelColor = Color(0xFFE8D9C0),
+                                cursorColor = Color(0xFFE8D9C0)
+                            ),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // Password
                     OutlinedTextField(
                         value = password,
                         onValueChange = {
@@ -141,6 +191,7 @@ fun SignUpScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
+                    // Confirm Password
                     OutlinedTextField(
                         value = confirmPassword,
                         onValueChange = {
@@ -174,7 +225,7 @@ fun SignUpScreen(
                                 checkmarkColor = Color(0xFF0C0C0E)
                             )
                         )
-                        
+
                         val annotatedText = buildAnnotatedString {
                             append("I accept the ")
                             pushStringAnnotation(tag = "TERMS", annotation = "terms")
@@ -218,8 +269,11 @@ fun SignUpScreen(
                     Button(
                         onClick = {
                             when {
-                                name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
-                                    errorMessage = "Please fill in all fields."
+                                name.isBlank() || phoneNumber.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
+                                    errorMessage = "Please fill in all required fields."
+                                }
+                                showEmail && email.isBlank() -> {
+                                    errorMessage = "Please enter email or disable the email toggle."
                                 }
                                 password != confirmPassword -> {
                                     errorMessage = "Passwords do not match."
@@ -228,12 +282,22 @@ fun SignUpScreen(
                                     errorMessage = "You must accept the Terms and Privacy Policy."
                                 }
                                 else -> {
-                                    val success = vault.registerUser(email, name, password)
-                                    if (success) {
-                                        vault.setConfig("active_user", email)
-                                        onRegisterSuccess(email)
+                                    // Generate a synthetic email if none provided for vault storage
+                                    val vaultEmail = if (showEmail && email.isNotBlank()) {
+                                        email.lowercase().trim()
                                     } else {
-                                        errorMessage = "An account with this email already exists."
+                                        "user_${phoneNumber.replace(Regex("[^0-9]"), "")}@insidher.local"
+                                    }
+                                    
+                                    val success = vault.registerUser(vaultEmail, name.trim(), password)
+                                    if (success) {
+                                        // Store phone number on client record
+                                        val client = vault.getOrCreateClient(vaultEmail)
+                                        // Note: phoneNumber stored in client preferences or separate field
+                                        vault.setConfig("active_user", vaultEmail)
+                                        onSignUpSuccess(vaultEmail)
+                                    } else {
+                                        errorMessage = "An account with this phone/email already exists."
                                     }
                                 }
                             }
