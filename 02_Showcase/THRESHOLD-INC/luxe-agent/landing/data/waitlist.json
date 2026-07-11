@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1783741527478,
+    "email": "landing@test.com",
+    "name": "Landing User",
+    "phone": "+15551234567",
+    "source": "landing",
+    "created_at": "2026-07-11T03:45:27.478Z"
+  },
+  {
+    "id": 1783741270210,
+    "email": "test@example.com",
+    "name": "Test User",
+    "phone": "+15551234567",
+    "source": "landing",
+    "created_at": "2026-07-11T03:41:10.210Z"
+  }
+]

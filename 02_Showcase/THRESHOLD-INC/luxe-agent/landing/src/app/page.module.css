@@ -1,0 +1,278 @@
+.main {
+  min-height: 100vh;
+  background: #0C0C0E;
+  color: #F5F0E6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.header {
+  padding: 24px 32px;
+  border-bottom: 1px solid #1A1A1F;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 200;
+  letter-spacing: 3px;
+  color: #E8D9C0;
+}
+
+.hero {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 24px 48px;
+  text-align: center;
+}
+
+.title {
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 200;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #F5F0E6;
+  margin: 0 0 24px;
+}
+
+.title strong {
+  font-weight: 300;
+  color: #E8D9C0;
+}
+
+.subtitle {
+  font-size: clamp(16px, 2.5vw, 19px);
+  font-weight: 300;
+  line-height: 1.7;
+  color: #F5F0E6CC;
+  margin: 0 0 48px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  margin-bottom: 48px;
+  padding: 24px 0;
+  border-top: 1px solid #1A1A1F;
+  border-bottom: 1px solid #1A1A1F;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.statNumber {
+  font-size: 28px;
+  font-weight: 200;
+  color: #E8D9C0;
+  letter-spacing: 1px;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 300;
+  color: #F5F0E680;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 420px;
+  margin: 0 auto 32px;
+  text-align: left;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 300;
+  color: #F5F0E680;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.input {
+  background: #1A1A1F;
+  border: 1px solid #E8D9C033;
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 15px;
+  color: #F5F0E6;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  border-color: #E8D9C0;
+  box-shadow: 0 0 0 3px #E8D9C033;
+}
+
+.input::placeholder {
+  color: #F5F0E640;
+}
+
+.submitBtn {
+  margin-top: 8px;
+  background: #E8D9C0;
+  color: #0C0C0E;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #F5F0E6;
+}
+
+.submitBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.privacy {
+  text-align: center;
+  font-size: 11px;
+  color: #F5F0E660;
+}
+
+.success, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.success {
+  background: #4CAF5015;
+  border: 1px solid #4CAF5040;
+  color: #4CAF50;
+}
+
+.error {
+  background: #CF667915;
+  border: 1px solid #CF667940;
+  color: #CF6679;
+}
+
+.features {
+  padding: 64px 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 200;
+  letter-spacing: 3px;
+  color: #E8D9C0;
+  margin: 0 0 48px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: #141210;
+  border: 1px solid #E8D9C015;
+  border-radius: 16px;
+  padding: 32px 24px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.card:hover {
+  border-color: #E8D9C033;
+  transform: translateY(-2px);
+}
+
+.icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #E8D9C010;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  color: #E8D9C0;
+}
+
+.icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.card h3 {
+  font-size: 16px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  color: #F5F0E6;
+  margin: 0 0 10px;
+}
+
+.card p {
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 1.6;
+  color: #F5F0E680;
+  margin: 0;
+}
+
+.footer {
+  padding: 32px 24px;
+  text-align: center;
+  border-top: 1px solid #1A1A1F;
+  font-size: 12px;
+  color: #F5F0E660;
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.links a {
+  color: #F5F0E660;
+  text-decoration: none;
+  font-size: 12px;
+  transition: color 0.2s;
+}
+
+.links a:hover {
+  color: #E8D9C0;
+}

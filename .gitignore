@@ -58,6 +58,13 @@ node_modules/
 !brik-pro/**
 brik-pro/node_modules/
 brik-pro/dist/
+
+# Landing page (Next.js)
+!02_Showcase/THRESHOLD-INC/luxe-agent/landing/
+!02_Showcase/THRESHOLD-INC/luxe-agent/landing/**
+02_Showcase/THRESHOLD-INC/luxe-agent/landing/node_modules/
+02_Showcase/THRESHOLD-INC/luxe-agent/landing/.next/
+02_Showcase/THRESHOLD-INC/luxe-agent/landing/dist/
 brik-pro/.env
 brik-pro/.env.*
 brik-pro/*.log
