@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "tone": { "type": "string", "minLength": 1 },
+    "vocabulary": { "type": "array", "items": { "type": "string" } },
+    "offerings": { "type": "array", "items": { "type": "string" } },
+    "depositWording": { "type": ["string", "null"] },
+    "boundaries": { "type": ["array", "null"], "items": { "type": "string" } },
+    "availabilityPolicy": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "timezone": { "type": "string" },
+        "weeklyWindows": {
+          "type": "object",
+          "properties": {
+            "MONDAY": { "type": "object" },
+            "TUESDAY": { "type": "object" },
+            "WEDNESDAY": { "type": "object" },
+            "THURSDAY": { "type": "object" },
+            "FRIDAY": { "type": "object" },
+            "SATURDAY": { "type": "object" },
+            "SUNDAY": { "type": "object" }
+          }
+        },
+        "dndPeriods": {
+          "type": "array"
+        },
+        "dateOverrides": {
+          "type": "object"
+        }
+      },
+      "required": ["timezone", "weeklyWindows", "dndPeriods", "dateOverrides"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["name", "tone", "vocabulary", "offerings", "availabilityPolicy"],
+  "additionalProperties": false
+}

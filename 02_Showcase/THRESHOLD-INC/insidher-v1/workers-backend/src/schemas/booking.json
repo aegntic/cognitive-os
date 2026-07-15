@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "date": { "type": "string", "format": "date" },
+    "time": { "type": "string", "format": "time" },
+    "service": { "type": "string", "minLength": 1 },
+    "depositAmount": { "type": "number", "minimum": 0 },
+    "depositStatus": { "type": "string", "enum": ["PENDING", "RECEIVED", "VERIFIED", "FAILED"] },
+    "amount": { "type": "number", "minimum": 0 },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "status": { "type": "string", "enum": ["PENDING", "RECEIVED", "VERIFIED", "FAILED"] },
+    "evidenceType": { "type": ["string", "null"] },
+    "evidenceRef": { "type": ["string", "null"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "verifiedAt": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "additionalProperties": false
+}

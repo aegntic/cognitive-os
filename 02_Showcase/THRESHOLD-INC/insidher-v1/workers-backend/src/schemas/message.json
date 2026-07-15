@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "type": { "type": "string", "enum": ["inbound", "outbound"] },
+    "direction": { "type": "string", "enum": ["inbound", "outbound"] },
+    "threadId": { "type": "string", "minLength": 1 },
+    "body": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "phoneNumber": { "type": "string" },
+    "worker": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+  },
+  "required": ["type", "direction", "threadId", "body", "timestamp"],
+  "additionalProperties": false
+}
