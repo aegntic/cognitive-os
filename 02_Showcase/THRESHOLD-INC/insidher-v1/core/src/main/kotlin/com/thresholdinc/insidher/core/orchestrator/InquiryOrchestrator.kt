@@ -17,7 +17,13 @@ import com.thresholdinc.insidher.core.inference.InferenceException
 import com.thresholdinc.insidher.core.inference.InferenceProvider
 import com.thresholdinc.insidher.core.safety.AvailabilityChecker
 import com.thresholdinc.insidher.core.safety.SafetyWorker
+import com.thresholdinc.insidher.core.workers.BookingEvaluation
+import com.thresholdinc.insidher.core.workers.BookingWorker
+import com.thresholdinc.insidher.core.workers.DepositEvidenceInput
+import com.thresholdinc.insidher.core.workers.MemoryWorker
 import com.thresholdinc.insidher.core.workers.PersonaWorker
+import com.thresholdinc.insidher.core.workers.TimingKind
+import com.thresholdinc.insidher.core.workers.TimingWorker
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -37,46 +43,46 @@ data class OrchestratorResult(
 )
 
 /**
- * InquiryOrchestrator — inbound → safety → (availability) → persona/inference →
- * outbound safety → actions. Enforces no-final-SMS-without-approve.
- *
- * Pipeline order (VAL-LLM-046): safety → memory → persona → safety → booking → timing
- * m0 implements safety + persona/inference + timing delay placeholder; memory/booking are no-op hooks.
+ * InquiryOrchestrator — inbound → safety → memory → persona → outbound safety → booking → timing.
+ * Enforces no-final-SMS-without-approve (VAL-SAFETY-043).
  */
 class InquiryOrchestrator(
     private val safety: SafetyWorker,
     private val personaWorker: PersonaWorker,
+    private val memoryWorker: MemoryWorker = MemoryWorker(),
+    private val timingWorker: TimingWorker = TimingWorker(),
+    private val bookingWorker: BookingWorker = BookingWorker(),
     private val availability: AvailabilityChecker = AvailabilityChecker(),
     private val audit: AuditLog = safety.auditLog(),
     private val clock: () -> Instant = { Clock.System.now() },
 ) {
     private val aiChallengeCounts = ConcurrentHashMap<String, Int>()
     private val recentInbound = ConcurrentHashMap<String, MutableList<Long>>()
+    private val replyCounts = ConcurrentHashMap<String, Int>()
 
     suspend fun handleInbound(
         context: ThreadContext,
         message: ClientMessage,
         persona: PersonaProfile,
         humanDecision: HumanDecision? = null,
+        depositEvidence: DepositEvidenceInput? = null,
     ): OrchestratorResult {
         val steps = mutableListOf<String>()
         val transitions = mutableListOf<TransitionRecord>()
         var ctx = context
         val now = clock()
 
-        // Terminal / escalated: do not auto-process (VAL-SAFETY-084/085)
         if (ctx.state is ThreadState.ENDED || ctx.state is ThreadState.ESCALATED) {
             steps += "skip_terminal"
             return OrchestratorResult(ctx, listOf(OrchestratorAction.NoAction), emptyList(), null, transitions, PipelineTrace(steps), false)
         }
 
-        // Human review gate
         if (ctx.state is ThreadState.HUMAN_REVIEW) {
             steps += "human_gate"
             return handleHumanReview(ctx, humanDecision, steps, transitions, now)
         }
 
-        // 1. Safety inbound (VAL-SAFETY-006 first)
+        // 1. Safety inbound
         steps += "safety_inbound"
         val recent = touchRate(ctx.id, now)
         val inboundSafety = safety.evaluateInbound(
@@ -99,13 +105,12 @@ class InquiryOrchestrator(
                 if (inboundVerdict.reasonCode == EscalationReasonCode.RATE_LIMIT_HIT) {
                     return cooldownResult(ctx, steps, transitions, now)
                 }
-                // Safety-critical during quiet hours still escalate (VAL-SAFETY-067)
                 return escalateResult(ctx, inboundVerdict.reasonCode, steps, transitions, now, smsAllowed = false, silent = false)
             }
             is SafetyVerdict.Safe -> { /* continue */ }
         }
 
-        // Quiet hours: receive but do not respond (VAL-SAFETY-066)
+        // Quiet hours: receive but do not respond
         if (availability.isQuietHours(persona.availabilityPolicy, now)) {
             steps += "quiet_hours_hold"
             return OrchestratorResult(
@@ -119,16 +124,29 @@ class InquiryOrchestrator(
             )
         }
 
-        // 2. Memory hook (m0 no-op)
+        // 2. Memory
         steps += "memory"
-        val memoryHints = emptyList<String>()
+        memoryWorker.observe(ctx.id, message.body, now)
+        val memoryHints = memoryWorker.naturalHints(ctx.id, now)
 
-        // 3. Persona / inference
+        // 3. Persona / inference (one persona per thread)
         steps += "persona"
+        try {
+            personaWorker.bindPersona(ctx.id, ctx.personaId)
+        } catch (_: IllegalArgumentException) {
+            steps += "persona_mismatch"
+            return escalateResult(ctx, EscalationReasonCode.PERSONA_DEVIATION, steps, transitions, now, false, false)
+        }
+
         val draft: WorkerOutput.PersonaOutput = try {
-            personaWorker.draft(persona, message.body, memoryHints)
+            personaWorker.draft(
+                persona = persona,
+                clientText = message.body,
+                memoryHints = memoryHints,
+                threadId = ctx.id,
+                personaId = ctx.personaId,
+            )
         } catch (e: InferenceException) {
-            // VAL-SAFETY-052 fail-closed on LLM failure
             steps += "inference_fail"
             audit.logLlmCall(ctx.id, "unknown", 0, 0.0, false)
             return escalateResult(ctx, EscalationReasonCode.SERVICE_UNAVAILABLE, steps, transitions, now, false, false)
@@ -140,7 +158,6 @@ class InquiryOrchestrator(
         // 4. Outbound safety
         steps += "safety_outbound"
         var outboundText = draft.responseText
-        var deflection = false
         var outbound = safety.evaluateOutbound(ctx.id, outboundText, deflectionAllowed = false)
         var retries = 0
         while (
@@ -148,11 +165,16 @@ class InquiryOrchestrator(
             (outbound.verdict as SafetyVerdict.Block).reasonCode == EscalationReasonCode.PERSONA_DEVIATION &&
             retries < 2
         ) {
-            // VAL-SAFETY-102 regeneration limit
             retries++
             steps += "persona_retry_$retries"
             try {
-                val redraft = personaWorker.draft(persona, message.body + "\n(Reply naturally, no AI/corporate language.)", memoryHints)
+                val redraft = personaWorker.draft(
+                    persona = persona,
+                    clientText = message.body + "\n(Reply naturally, no AI/corporate language.)",
+                    memoryHints = memoryHints,
+                    threadId = ctx.id,
+                    personaId = ctx.personaId,
+                )
                 outboundText = redraft.responseText
                 outbound = safety.evaluateOutbound(ctx.id, outboundText, false)
             } catch (_: Exception) {
@@ -172,14 +194,65 @@ class InquiryOrchestrator(
             is SafetyVerdict.Safe -> { /* ok */ }
         }
 
-        // 5. Booking hook (m0 no-op)
+        // 5. Booking (deposit progression)
         steps += "booking"
+        val booking = bookingWorker.evaluate(
+            context = ctx,
+            clientText = message.body,
+            persona = persona,
+            now = now,
+            evidence = depositEvidence,
+        )
+        ctx = applyBookingTransitions(ctx, booking, steps, transitions, now)
 
-        // 6. Timing placeholder (m0 fixed range random later; expose delay action)
+        if (booking.depositPrompt != null &&
+            !outboundText.contains("deposit", ignoreCase = true) &&
+            booking.output.depositRequested
+        ) {
+            outboundText = mergeDepositPrompt(outboundText, booking.depositPrompt)
+            val recheck = safety.evaluateOutbound(ctx.id, outboundText, false)
+            if (recheck.verdict !is SafetyVerdict.Safe) {
+                outboundText = booking.depositPrompt
+                val again = safety.evaluateOutbound(ctx.id, outboundText, false)
+                if (again.verdict !is SafetyVerdict.Safe) {
+                    return escalateResult(ctx, EscalationReasonCode.PERSONA_DEVIATION, steps, transitions, now, false, false)
+                }
+            }
+        }
+
+        // Wait for human after deposit evidence reaches HUMAN_REVIEW
+        if (ctx.state is ThreadState.HUMAN_REVIEW || booking.waitForHuman) {
+            steps += "wait_human_deposit"
+            return OrchestratorResult(
+                context = ctx,
+                actions = listOf(OrchestratorAction.WaitForHuman(ctx.id)),
+                outboundMessages = emptyList(),
+                alert = booking.alert,
+                transitions = transitions,
+                trace = PipelineTrace(steps),
+                smsAllowed = false,
+            )
+        }
+
+        // 6. Timing (non-fixed delays)
         steps += "timing"
-        val delayMs = 45_000L // lower bound of initial delay range; full TimingWorker is m1
+        val kind = if ((replyCounts[ctx.id] ?: 0) == 0) TimingKind.INITIAL else TimingKind.FOLLOW_UP
+        val timing = timingWorker.compute(kind, persona.availabilityPolicy, now)
+        if (timing.shouldHold) {
+            steps += "timing_quiet_hold"
+            return OrchestratorResult(
+                context = ctx,
+                actions = listOf(OrchestratorAction.NoAction),
+                outboundMessages = emptyList(),
+                alert = booking.alert,
+                transitions = transitions,
+                trace = PipelineTrace(steps),
+                smsAllowed = false,
+            )
+        }
+        val delayMs = timing.output.delayMs
 
-        // State progression NEW→GREETING→CONVERSING
+        // Conversation advance NEW→GREETING→CONVERSING (skip if already deposit path)
         ctx = advanceConversationState(ctx, steps, transitions, now)
 
         val agentMessage = AgentMessage(
@@ -191,21 +264,26 @@ class InquiryOrchestrator(
         )
 
         // Invariant: never send final confirmation without HumanDecision.APPROVE
-        if (ctx.state is ThreadState.HUMAN_REVIEW || ctx.state is ThreadState.CONFIRMED) {
-            // Should not auto-send confirmation from inbound path without decision
-            if (looksLikeConfirmation(outboundText) && humanDecision !is HumanDecision.Approve) {
+        if (looksLikeConfirmation(outboundText) && humanDecision !is HumanDecision.Approve) {
+            if (ctx.state is ThreadState.HUMAN_REVIEW ||
+                ctx.state is ThreadState.CONFIRMED ||
+                ctx.state is ThreadState.DEPOSIT_PENDING
+            ) {
                 steps += "block_final_sms"
                 return OrchestratorResult(
                     context = ctx,
                     actions = listOf(OrchestratorAction.WaitForHuman(ctx.id)),
                     outboundMessages = emptyList(),
-                    alert = null,
+                    alert = booking.alert,
                     transitions = transitions,
                     trace = PipelineTrace(steps),
                     smsAllowed = false,
                 )
             }
         }
+
+        replyCounts[ctx.id] = (replyCounts[ctx.id] ?: 0) + 1
+        memoryWorker.store(ctx.id, "last_outbound", outboundText.take(120), now, 0.7)
 
         val actions = listOf(
             OrchestratorAction.ScheduleDelayed(agentMessage, delayMs),
@@ -217,16 +295,13 @@ class InquiryOrchestrator(
             context = ctx,
             actions = actions,
             outboundMessages = listOf(agentMessage),
-            alert = null,
+            alert = booking.alert,
             transitions = transitions,
             trace = PipelineTrace(steps),
             smsAllowed = true,
         )
     }
 
-    /**
-     * Apply owner decision in HUMAN_REVIEW (VAL-SAFETY-043..048).
-     */
     fun applyHumanDecision(
         context: ThreadContext,
         decision: HumanDecision,
@@ -247,12 +322,11 @@ class InquiryOrchestrator(
             is HumanDecision.Approve -> {
                 val msg = AgentMessage(
                     threadId = ctx.id,
-                    body = "You're all set — see you then!",
+                    body = bookingWorker.confirmationCopy(),
                     timestamp = now,
                     worker = "human_gate",
                     confidence = 1.0,
                 )
-                // Outbound safety on confirmation
                 val out = safety.evaluateOutbound(ctx.id, msg.body)
                 if (out.verdict !is SafetyVerdict.Safe) {
                     return escalateResult(ctx, EscalationReasonCode.UNKNOWN_RISK, steps, transitions, now, false, false)
@@ -269,14 +343,16 @@ class InquiryOrchestrator(
                 )
             }
             is HumanDecision.Reject -> {
+                val body = bookingWorker.politeDecline()
                 val msg = AgentMessage(
                     threadId = ctx.id,
-                    body = "Thanks for understanding — take care.",
+                    body = body,
                     timestamp = now,
                     worker = "human_gate",
                     confidence = 1.0,
                 )
                 safety.evaluateOutbound(ctx.id, msg.body)
+                steps += "polite_decline"
                 OrchestratorResult(
                     context = ctx,
                     actions = listOf(OrchestratorAction.SendMessage(msg)),
@@ -290,6 +366,44 @@ class InquiryOrchestrator(
             is HumanDecision.Escalate -> {
                 escalateResult(ctx, EscalationReasonCode.UNKNOWN_RISK, steps, transitions, now, false, false)
             }
+        }
+    }
+
+    private fun applyBookingTransitions(
+        ctx: ThreadContext,
+        booking: BookingEvaluation,
+        steps: MutableList<String>,
+        transitions: MutableList<TransitionRecord>,
+        now: Instant,
+    ): ThreadContext {
+        var next = ctx
+        val target = booking.targetState
+        if (target != null && target != next.state) {
+            val tr = next.tryTransition(target, next.revision, now, "booking")
+            if (tr != null) {
+                transitions += tr.record
+                steps += "state:${next.state.serialName}->${target.serialName}"
+                next = tr.context
+            }
+        }
+        // Verified evidence: DEPOSIT_REQUESTED → PENDING → HUMAN_REVIEW
+        if (booking.chainToHumanReview && next.state is ThreadState.DEPOSIT_PENDING) {
+            val tr2 = next.tryTransition(ThreadState.HUMAN_REVIEW, next.revision, now, "booking")
+            if (tr2 != null) {
+                transitions += tr2.record
+                steps += "state:${next.state.serialName}->HUMAN_REVIEW"
+                next = tr2.context
+            }
+        }
+        return next
+    }
+
+    private fun mergeDepositPrompt(outbound: String, depositPrompt: String): String {
+        val trimmed = outbound.trimEnd()
+        return if (trimmed.endsWith("?") || trimmed.endsWith("!") || trimmed.endsWith(".")) {
+            "$trimmed $depositPrompt"
+        } else {
+            "$trimmed. $depositPrompt"
         }
     }
 
@@ -325,17 +439,14 @@ class InquiryOrchestrator(
         val count = (aiChallengeCounts[ctx.id] ?: 0) + 1
         aiChallengeCounts[ctx.id] = count
 
-        // Repeated challenges → full ESCALATED (VAL-SAFETY-034)
         if (count >= 3) {
             return escalateResult(ctx, EscalationReasonCode.AI_CHALLENGE_DETECTED, steps, transitions, now, false, silent = true)
         }
 
-        // HUMAN_REVIEW: do not resume conversation (VAL-SAFETY-035)
         if (ctx.state is ThreadState.HUMAN_REVIEW) {
             return escalateResult(ctx, EscalationReasonCode.AI_CHALLENGE_DETECTED, steps, transitions, now, false, silent = true)
         }
 
-        // Transition to AI_CHALLENGED
         val toChallenge = ctx.tryTransition(ThreadState.AI_CHALLENGED, ctx.revision, now, "safety")
         var next = ctx
         if (toChallenge != null) {
@@ -344,7 +455,6 @@ class InquiryOrchestrator(
         }
 
         val deflection = safety.deflection()
-        // VAL-SAFETY-098: outbound check deflection
         val out = safety.evaluateOutbound(next.id, deflection, deflectionAllowed = true)
         val msg = if (out.verdict is SafetyVerdict.Safe) {
             AgentMessage(next.id, deflection, now, "safety", 0.9)
@@ -352,7 +462,6 @@ class InquiryOrchestrator(
             AgentMessage(next.id, "Haha what? I'm right here.", now, "safety", 0.8)
         }
 
-        // Silent owner alert (VAL-SAFETY-033)
         val alert = WorkerOutput.AlertOutput(
             reasonCode = EscalationReasonCode.AI_CHALLENGE_DETECTED,
             threadId = next.id,
@@ -360,7 +469,6 @@ class InquiryOrchestrator(
         )
         audit.logEscalation(next.id, EscalationReasonCode.AI_CHALLENGE_DETECTED, "silent")
 
-        // Resume to previous conversational state (VAL-SAFETY-032)
         val previous = next.previousState
         if (previous != null && next.state is ThreadState.AI_CHALLENGED) {
             val resume = next.tryTransition(previous, next.revision, now, "safety")
@@ -453,6 +561,15 @@ class InquiryOrchestrator(
         transitions: MutableList<TransitionRecord>,
         now: Instant,
     ): ThreadContext {
+        // Don't pull deposit states backward
+        if (
+            ctx.state is ThreadState.DEPOSIT_REQUESTED ||
+            ctx.state is ThreadState.DEPOSIT_PENDING ||
+            ctx.state is ThreadState.HUMAN_REVIEW ||
+            ctx.state is ThreadState.CONFIRMED
+        ) {
+            return ctx
+        }
         val target = when (ctx.state) {
             is ThreadState.NEW -> ThreadState.GREETING
             is ThreadState.GREETING -> ThreadState.CONVERSING
@@ -477,7 +594,8 @@ class InquiryOrchestrator(
 
     private fun looksLikeConfirmation(text: String): Boolean {
         val t = text.lowercase()
-        return t.contains("confirmed") || t.contains("you're booked") || t.contains("see you at")
+        return t.contains("confirmed") || t.contains("you're booked") || t.contains("see you at") ||
+            t.contains("you're all set")
     }
 
     companion object {
@@ -489,6 +607,9 @@ class InquiryOrchestrator(
             return InquiryOrchestrator(
                 safety = safety,
                 personaWorker = PersonaWorker(inference),
+                memoryWorker = MemoryWorker(),
+                timingWorker = TimingWorker(),
+                bookingWorker = BookingWorker(),
                 audit = audit,
             )
         }
