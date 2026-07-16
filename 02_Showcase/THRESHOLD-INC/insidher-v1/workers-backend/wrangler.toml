@@ -1,0 +1,56 @@
+name = "insidher-backend"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "insidher"
+database_id = "local-d1"
+
+# LLM Queue
+[[queues.producers]]
+queue = "llm-queue"
+binding = "LLM_QUEUE"
+
+[[queues.consumers]]
+queue = "llm-queue"
+max_batch_size = 5
+max_batch_timeout = 10
+max_retries = 3
+dead_letter_queue = "llm-dlq"
+
+# SMS Queue
+[[queues.producers]]
+queue = "sms-queue"
+binding = "SMS_QUEUE"
+
+[[queues.consumers]]
+queue = "sms-queue"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+dead_letter_queue = "sms-dlq"
+
+# Dead Letter Queues
+[[queues.producers]]
+queue = "llm-dlq"
+binding = "LLM_DLQ"
+
+[[queues.producers]]
+queue = "sms-dlq"
+binding = "SMS_DLQ"
+
+[triggers]
+crons = ["*/5 * * * *", "0 * * * *"]
+
+[vars]
+OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+OPENROUTER_FALLBACK_MODEL = "qwen/qwen3-next-80b-a3b-instruct:free"
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+STALL_THRESHOLD_MINUTES = "30"
+CLEANUP_TTL_HOURS = "24"
+RATE_LIMIT_PER_MINUTE = "20"
+DAILY_RATE_LIMIT = "50"
+DEFAULT_DEPOSIT_CURRENCY = "AUD"
+# OPENROUTER_API_KEY set via: wrangler secret put OPENROUTER_API_KEY
