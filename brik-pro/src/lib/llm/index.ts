@@ -70,7 +70,7 @@ export class Tool {
 }
 \`\`\`
 
-Generate ONLY the Tool class code. No markdown, no explanation.` 
+Generate ONLY the Tool class code. No markdown, no explanation.`
 
 export class LLMEngine {
   private config: LLMConfig
@@ -84,13 +84,22 @@ export class LLMEngine {
     this.config = config
   }
 
-  async generateTool(prompt: string, existingCode?: string, controllers?: Controller[]): Promise<{ code: string; controllers: Controller[]; description: string }> {
+  async generateTool(
+    prompt: string,
+    existingCode?: string,
+    controllers?: Controller[]
+  ): Promise<{ code: string; controllers: Controller[]; description: string }> {
     const messages = this.buildMessages(prompt, existingCode, controllers)
     const response = await this.chat(messages, true)
     return this.parseResponse(response)
   }
 
-  async iterateTool(prompt: string, currentCode: string, currentControllers: Controller[], chatHistory: ChatMessage[]): Promise<{ code: string; controllers: Controller[]; description: string }> {
+  async iterateTool(
+    prompt: string,
+    currentCode: string,
+    currentControllers: Controller[],
+    chatHistory: ChatMessage[]
+  ): Promise<{ code: string; controllers: Controller[]; description: string }> {
     const messages = this.buildIterationMessages(prompt, currentCode, currentControllers, chatHistory)
     const response = await this.chat(messages, true)
     return this.parseResponse(response)
@@ -98,7 +107,7 @@ export class LLMEngine {
 
   async chat(messages: { role: string; content: string }[], stream = false): Promise<string> {
     this.abortController = new AbortController()
-    
+
     const provider = this.config.provider
     let url = ''
     let body: Record<string, unknown> = {
@@ -127,8 +136,8 @@ export class LLMEngine {
           model: this.config.model,
           max_tokens: this.config.maxTokens,
           temperature: this.config.temperature,
-          messages: messages.filter(m => m.role !== 'system'),
-          system: messages.find(m => m.role === 'system')?.content,
+          messages: messages.filter((m) => m.role !== 'system'),
+          system: messages.find((m) => m.role === 'system')?.content,
         }
         break
       case 'custom':
@@ -161,33 +170,33 @@ export class LLMEngine {
     }
 
     const data = await response.json()
-    
+
     if (provider === 'anthropic') {
       return data.content[0]?.text || ''
     }
-    
+
     return data.choices?.[0]?.message?.content || data.message?.content || ''
   }
 
   private async handleStream(response: Response): Promise<string> {
     const reader = response.body?.getReader()
     if (!reader) throw new Error('No response body')
-    
+
     const decoder = new TextDecoder()
     let fullText = ''
-    
+
     try {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        
+
         const chunk = decoder.decode(value, { stream: true })
         fullText += chunk
       }
     } finally {
       reader.releaseLock()
     }
-    
+
     return fullText
   }
 
@@ -195,10 +204,12 @@ export class LLMEngine {
     this.abortController?.abort()
   }
 
-  private buildMessages(prompt: string, existingCode?: string, controllers?: Controller[]): { role: string; content: string }[] {
-    const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-    ]
+  private buildMessages(
+    prompt: string,
+    existingCode?: string,
+    controllers?: Controller[]
+  ): { role: string; content: string }[] {
+    const messages = [{ role: 'system', content: SYSTEM_PROMPT }]
 
     if (existingCode) {
       messages.push({
@@ -215,10 +226,13 @@ export class LLMEngine {
     return messages
   }
 
-  private buildIterationMessages(prompt: string, currentCode: string, currentControllers: Controller[], history: ChatMessage[]): { role: string; content: string }[] {
-    const messages = [
-      { role: 'system', content: SYSTEM_PROMPT },
-    ]
+  private buildIterationMessages(
+    prompt: string,
+    currentCode: string,
+    currentControllers: Controller[],
+    history: ChatMessage[]
+  ): { role: string; content: string }[] {
+    const messages = [{ role: 'system', content: SYSTEM_PROMPT }]
 
     for (const msg of history.slice(-10)) {
       messages.push({ role: msg.role, content: msg.content })
@@ -270,10 +284,10 @@ export class LLMEngine {
   private extractControllersFromCode(code: string): Controller[] {
     const controllers: Controller[] = []
     const controllerMatches = code.matchAll(/this\.controllers\.get\(['"]([^'"]+)['"]\)\?\.\s*value/gi)
-    
+
     for (const match of controllerMatches) {
       const id = match[1]
-      if (!controllers.find(c => c.id === id)) {
+      if (!controllers.find((c) => c.id === id)) {
         controllers.push(createDefaultController('slider', id, controllers.length))
       }
     }

@@ -12,22 +12,26 @@ export async function exportAsImage(tool: Tool, options: ExportOptions): Promise
   const exportCanvas = document.createElement('canvas')
   exportCanvas.width = canvas.width * scale
   exportCanvas.height = canvas.height * scale
-  
+
   const ctx = exportCanvas.getContext('2d')!
   ctx.scale(scale, scale)
-  
+
   if (!transparent) {
     ctx.fillStyle = '#000000'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
-  
+
   ctx.drawImage(canvas, 0, 0)
 
   return new Promise((resolve) => {
-    exportCanvas.toBlob((blob) => {
-      if (blob) resolve(blob)
-      else throw new Error('Failed to create image blob')
-    }, `image/${format}`, 1.0)
+    exportCanvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob)
+        else throw new Error('Failed to create image blob')
+      },
+      `image/${format}`,
+      1.0
+    )
   })
 }
 
@@ -115,7 +119,11 @@ export async function downloadBlob(blob: Blob, filename: string): Promise<void> 
   URL.revokeObjectURL(url)
 }
 
-export async function handleExport(tool: Tool, format: 'image' | 'video' | 'code' | 'embed', options: ExportOptions): Promise<void> {
+export async function handleExport(
+  tool: Tool,
+  format: 'image' | 'video' | 'code' | 'embed',
+  options: ExportOptions
+): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
   const baseName = tool.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()
 

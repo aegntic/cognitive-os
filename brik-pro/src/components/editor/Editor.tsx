@@ -70,20 +70,20 @@ export function Editor() {
       chatHistory: [],
     }
     await storage.saveTool(newTool)
-    setTools(prev => [newTool, ...prev])
+    setTools((prev) => [newTool, ...prev])
     setActiveToolId(newTool.id)
   }
 
   async function handleGenerate(prompt: string) {
     if (!llmEngineRef.current || !activeToolId) return
-    
-    const tool = tools.find(t => t.id === activeToolId)
+
+    const tool = tools.find((t) => t.id === activeToolId)
     if (!tool) return
 
     setIsGenerating(true)
     try {
       const result = await llmEngineRef.current.generateTool(prompt)
-      
+
       const updatedTool: Tool = {
         ...tool,
         code: result.code,
@@ -94,10 +94,15 @@ export function Editor() {
         chatHistory: [
           ...tool.chatHistory,
           { id: generateId(), role: 'user' as const, content: prompt, timestamp: Date.now() },
-          { id: generateId(), role: 'assistant' as const, content: result.description || 'Tool generated', timestamp: Date.now() },
+          {
+            id: generateId(),
+            role: 'assistant' as const,
+            content: result.description || 'Tool generated',
+            timestamp: Date.now(),
+          },
         ],
       }
-      
+
       await storage.saveTool(updatedTool)
       await storage.createVersion({
         id: generateId(),
@@ -111,22 +116,27 @@ export function Editor() {
         createdAt: Date.now(),
         authorId: 'local',
       })
-      
-      setTools(prev => prev.map(t => t.id === activeToolId ? updatedTool : t))
+
+      setTools((prev) => prev.map((t) => (t.id === activeToolId ? updatedTool : t)))
     } catch (error) {
       console.error('Generation failed:', error)
-      const tool = tools.find(t => t.id === activeToolId)
+      const tool = tools.find((t) => t.id === activeToolId)
       if (tool) {
         const updatedTool: Tool = {
           ...tool,
           chatHistory: [
             ...tool.chatHistory,
             { id: generateId(), role: 'user' as const, content: prompt, timestamp: Date.now() },
-            { id: generateId(), role: 'assistant' as const, content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, timestamp: Date.now() },
+            {
+              id: generateId(),
+              role: 'assistant' as const,
+              content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              timestamp: Date.now(),
+            },
           ],
         }
         await storage.saveTool(updatedTool)
-        setTools(prev => prev.map(t => t.id === activeToolId ? updatedTool : t))
+        setTools((prev) => prev.map((t) => (t.id === activeToolId ? updatedTool : t)))
       }
     } finally {
       setIsGenerating(false)
@@ -135,19 +145,14 @@ export function Editor() {
 
   async function handleIterate(prompt: string) {
     if (!llmEngineRef.current || !activeToolId) return
-    
-    const tool = tools.find(t => t.id === activeToolId)
+
+    const tool = tools.find((t) => t.id === activeToolId)
     if (!tool) return
 
     setIsGenerating(true)
     try {
-      const result = await llmEngineRef.current.iterateTool(
-        prompt,
-        tool.code,
-        tool.controllers,
-        tool.chatHistory
-      )
-      
+      const result = await llmEngineRef.current.iterateTool(prompt, tool.code, tool.controllers, tool.chatHistory)
+
       const updatedTool: Tool = {
         ...tool,
         code: result.code,
@@ -158,10 +163,15 @@ export function Editor() {
         chatHistory: [
           ...tool.chatHistory,
           { id: generateId(), role: 'user' as const, content: prompt, timestamp: Date.now() },
-          { id: generateId(), role: 'assistant' as const, content: result.description || 'Tool updated', timestamp: Date.now() },
+          {
+            id: generateId(),
+            role: 'assistant' as const,
+            content: result.description || 'Tool updated',
+            timestamp: Date.now(),
+          },
         ],
       }
-      
+
       await storage.saveTool(updatedTool)
       await storage.createVersion({
         id: generateId(),
@@ -175,8 +185,8 @@ export function Editor() {
         createdAt: Date.now(),
         authorId: 'local',
       })
-      
-      setTools(prev => prev.map(t => t.id === activeToolId ? updatedTool : t))
+
+      setTools((prev) => prev.map((t) => (t.id === activeToolId ? updatedTool : t)))
     } catch (error) {
       console.error('Iteration failed:', error)
       const errorTool = {
@@ -184,28 +194,47 @@ export function Editor() {
         chatHistory: [
           ...tool.chatHistory,
           { id: generateId(), role: 'user' as const, content: prompt, timestamp: Date.now() },
-          { id: generateId(), role: 'assistant' as const, content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`, timestamp: Date.now() },
+          {
+            id: generateId(),
+            role: 'assistant' as const,
+            content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            timestamp: Date.now(),
+          },
         ],
       }
       await storage.saveTool(errorTool)
-      setTools(prev => prev.map(t => t.id === activeToolId ? errorTool : t))
+      setTools((prev) => prev.map((t) => (t.id === activeToolId ? errorTool : t)))
     } finally {
       setIsGenerating(false)
     }
   }
 
-  const activeTool = tools.find(t => t.id === activeToolId)
+  const activeTool = tools.find((t) => t.id === activeToolId)
 
   const handleToolExport = async (format: 'image' | 'video' | 'code' | 'embed', options?: ExportOptions) => {
     if (!activeTool) return
-    await handleExport(activeTool, format, options || { format, imageFormat: "png", imageScale: 2, transparentBackground: true, videoFormat: "mp4", videoDuration: 5, videoFps: 30, videoQuality: "high", includeBranding: false })
+    await handleExport(
+      activeTool,
+      format,
+      options || {
+        format,
+        imageFormat: 'png',
+        imageScale: 2,
+        transparentBackground: true,
+        videoFormat: 'mp4',
+        videoDuration: 5,
+        videoFps: 30,
+        videoQuality: 'high',
+        includeBranding: false,
+      }
+    )
   }
 
   const handleShowHistory = () => setShowHistory(true)
 
   const handleRestore = async (version: VersionEntry) => {
     if (!activeToolId) return
-    const tool = tools.find(t => t.id === activeToolId)
+    const tool = tools.find((t) => t.id === activeToolId)
     if (!tool) return
 
     const restoredTool: Tool = {
@@ -231,12 +260,12 @@ export function Editor() {
       canvasHeight: restoredTool.canvasHeight,
       description: `Restored from v${version.version}`,
       createdAt: Date.now(),
-      authorId: "local",
+      authorId: 'local',
       parentVersionId: version.id,
       commitMessage: `Restore v${version.version}`,
     })
 
-    setTools(prev => prev.map(t => t.id === activeToolId ? restoredTool : t))
+    setTools((prev) => prev.map((t) => (t.id === activeToolId ? restoredTool : t)))
     await loadVersions(activeToolId)
     setShowHistory(false)
   }
@@ -244,7 +273,7 @@ export function Editor() {
   const handleFork = async (version: VersionEntry) => {
     const newTool: Tool = {
       id: generateId(),
-      name: `Fork of ${tools.find(t => t.id === activeToolId)?.name || "Tool"} (v${version.version})`,
+      name: `Fork of ${tools.find((t) => t.id === activeToolId)?.name || 'Tool'} (v${version.version})`,
       description: `Forked from version ${version.version}`,
       code: version.code,
       controllers: [...version.controllers],
@@ -256,7 +285,7 @@ export function Editor() {
       chatHistory: [],
       isPublished: false,
       tags: [],
-      authorId: "local",
+      authorId: 'local',
     }
     await storage.saveTool(newTool)
 
@@ -269,14 +298,14 @@ export function Editor() {
       controllers: newTool.controllers,
       canvasWidth: newTool.canvasWidth,
       canvasHeight: newTool.canvasHeight,
-      description: "Initial fork",
+      description: 'Initial fork',
       createdAt: Date.now(),
-      authorId: "local",
+      authorId: 'local',
       parentVersionId: version.id,
       commitMessage: `Fork from v${version.version}`,
     })
 
-    setTools(prev => [...prev, newTool])
+    setTools((prev) => [...prev, newTool])
     setActiveToolId(newTool.id)
     setShowHistory(false)
   }
@@ -284,24 +313,22 @@ export function Editor() {
   // Real controller value change handler (lifts state + persists)
   async function handleControllerChange(controllerId: string, value: unknown) {
     if (!activeToolId) return
-    const tool = tools.find(t => t.id === activeToolId)
+    const tool = tools.find((t) => t.id === activeToolId)
     if (!tool) return
 
-    const updatedControllers = tool.controllers.map(c =>
-      c.id === controllerId ? { ...c, value } : c
-    )
+    const updatedControllers = tool.controllers.map((c) => (c.id === controllerId ? { ...c, value } : c))
     const updatedTool: Tool = {
       ...tool,
       controllers: updatedControllers,
       updatedAt: Date.now(),
     }
     await storage.saveTool(updatedTool)
-    setTools(prev => prev.map(t => t.id === activeToolId ? updatedTool : t))
+    setTools((prev) => prev.map((t) => (t.id === activeToolId ? updatedTool : t)))
   }
 
   return (
     <div className="h-full flex flex-col bg-[#0a0a0a]">
-      <TopBar 
+      <TopBar
         tools={tools}
         activeToolId={activeToolId}
         onToolSelect={setActiveToolId}
@@ -309,7 +336,7 @@ export function Editor() {
         onExport={handleToolExport}
         onShowHistory={handleShowHistory}
       />
-      
+
       <div className="flex-1 flex overflow-hidden">
         <ChatPanel
           tool={activeTool}
@@ -318,20 +345,10 @@ export function Editor() {
           isGenerating={isGenerating}
           width={leftWidth}
         />
-        <PanelResizeHandle
-          position={leftWidth}
-          onDrag={setLeftWidth}
-          min={280}
-          max={600}
-          direction="horizontal"
-        />
-        
-        <CanvasPanel
-          tool={activeTool}
-          onControllerChange={handleControllerChange}
-          className="flex-1 min-w-0"
-        />
-        
+        <PanelResizeHandle position={leftWidth} onDrag={setLeftWidth} min={280} max={600} direction="horizontal" />
+
+        <CanvasPanel tool={activeTool} onControllerChange={handleControllerChange} className="flex-1 min-w-0" />
+
         <PanelResizeHandle
           position={rightWidth}
           onDrag={setRightWidth}
@@ -340,12 +357,8 @@ export function Editor() {
           direction="horizontal"
           reverse
         />
-        
-        <ControllerPanel
-          tool={activeTool}
-          onControllerChange={handleControllerChange}
-          width={rightWidth}
-        />
+
+        <ControllerPanel tool={activeTool} onControllerChange={handleControllerChange} width={rightWidth} />
       </div>
 
       <VersionHistory

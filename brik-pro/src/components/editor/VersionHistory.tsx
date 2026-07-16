@@ -12,14 +12,7 @@ interface VersionHistoryProps {
   onFork: (version: VersionEntry) => void
 }
 
-export function VersionHistory({ 
-  isOpen, 
-  onClose, 
-  tool, 
-  versions, 
-  onRestore, 
-  onFork 
-}: VersionHistoryProps) {
+export function VersionHistory({ isOpen, onClose, tool, versions, onRestore, onFork }: VersionHistoryProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   if (!isOpen || !tool) return null
@@ -30,11 +23,11 @@ export function VersionHistory({
 
   const formatTime = (ts: number) => {
     const d = new Date(ts)
-    return d.toLocaleString([], { 
-      month: 'short', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return d.toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   }
 
@@ -80,10 +73,12 @@ export function VersionHistory({
             </div>
             <div>
               <h2 className="text-white font-semibold text-lg">Version History</h2>
-              <p className="text-xs text-[#666]">{tool.name} • {versions.length} versions</p>
+              <p className="text-xs text-[#666]">
+                {tool.name} • {versions.length} versions
+              </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-[#222] rounded-lg text-[#888] hover:text-white transition-colors"
           >
@@ -97,7 +92,9 @@ export function VersionHistory({
             <div className="text-center py-12 text-[#666]">
               <GitBranch className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p>No version history yet.</p>
-              <p className="text-sm mt-1">Versions are created automatically when you generate or iterate with the AI.</p>
+              <p className="text-sm mt-1">
+                Versions are created automatically when you generate or iterate with the AI.
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -110,17 +107,19 @@ export function VersionHistory({
                     key={v.id}
                     onClick={() => setSelectedId(v.id)}
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                      isCurrent 
-                        ? 'border-[#8b5cf6] bg-[#8b5cf6]/5' 
-                        : isSelected 
-                          ? 'border-[#444] bg-[#1a1a1a]' 
+                      isCurrent
+                        ? 'border-[#8b5cf6] bg-[#8b5cf6]/5'
+                        : isSelected
+                          ? 'border-[#444] bg-[#1a1a1a]'
                           : 'border-[#222] hover:border-[#333] bg-[#0a0a0a]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-mono text-sm px-2 py-0.5 rounded ${isCurrent ? 'bg-[#8b5cf6] text-black' : 'bg-[#222] text-[#888]'}`}>
+                          <span
+                            className={`font-mono text-sm px-2 py-0.5 rounded ${isCurrent ? 'bg-[#8b5cf6] text-black' : 'bg-[#222] text-[#888]'}`}
+                          >
                             v{v.version}
                           </span>
                           {isCurrent && <span className="text-xs text-[#8b5cf6]">CURRENT</span>}
@@ -157,7 +156,10 @@ export function VersionHistory({
                         {!isCurrent && (
                           <>
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleRestore(v) }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleRestore(v)
+                              }}
                               className="px-3 py-1.5 text-xs bg-[#8b5cf6] hover:bg-[#7c3aed] text-black rounded flex items-center gap-1.5 font-medium"
                               title="Restore this version as current"
                             >
@@ -165,7 +167,10 @@ export function VersionHistory({
                               Restore
                             </button>
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleFork(v) }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleFork(v)
+                              }}
                               className="px-3 py-1.5 text-xs bg-[#222] hover:bg-[#333] text-white rounded flex items-center gap-1.5"
                               title="Create a new tool forked from this version"
                             >
@@ -175,7 +180,10 @@ export function VersionHistory({
                           </>
                         )}
                         <button
-                          onClick={(e) => { e.stopPropagation(); exportVersion(v) }}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            exportVersion(v)
+                          }}
                           className="px-3 py-1.5 text-xs bg-[#1a1a1a] hover:bg-[#222] text-[#888] hover:text-white rounded flex items-center gap-1.5"
                           title="Export this version as JSON"
                         >
@@ -189,7 +197,8 @@ export function VersionHistory({
                     {isSelected && (
                       <div className="mt-3 pt-3 border-t border-[#222]">
                         <pre className="text-xs text-[#aaa] bg-[#0a0a0a] p-3 rounded overflow-auto max-h-32 font-mono whitespace-pre-wrap">
-                          {v.code.slice(0, 800)}{v.code.length > 800 ? '...' : ''}
+                          {v.code.slice(0, 800)}
+                          {v.code.length > 800 ? '...' : ''}
                         </pre>
                       </div>
                     )}
@@ -202,14 +211,9 @@ export function VersionHistory({
 
         {/* Footer */}
         <div className="p-4 border-t border-[#222] flex items-center justify-between text-xs text-[#666]">
-          <div>
-            Click a version to preview. Restore loads it into the current tool.
-          </div>
+          <div>Click a version to preview. Restore loads it into the current tool.</div>
           <div className="flex gap-2">
-            <button 
-              onClick={onClose}
-              className="px-4 py-1.5 rounded bg-[#222] hover:bg-[#333] text-white"
-            >
+            <button onClick={onClose} className="px-4 py-1.5 rounded bg-[#222] hover:bg-[#333] text-white">
               Close
             </button>
           </div>

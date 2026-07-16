@@ -19,9 +19,14 @@ export function PanelResizeHandle({ position, onDrag, min, max, direction, rever
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      const delta = direction === 'horizontal' 
-        ? (reverse ? startX.current - e.clientX : e.clientX - startX.current)
-        : (reverse ? startY.current - e.clientY : e.clientY - startY.current)
+      const delta =
+        direction === 'horizontal'
+          ? reverse
+            ? startX.current - e.clientX
+            : e.clientX - startX.current
+          : reverse
+            ? startY.current - e.clientY
+            : e.clientY - startY.current
       const newPosition = Math.max(min, Math.max(max, startPosition.current + delta))
       onDrag(newPosition)
     }
@@ -60,12 +65,14 @@ export function PanelResizeHandle({ position, onDrag, min, max, direction, rever
       ref={handleRef}
       className={`
         flex items-center justify-center select-none transition-colors
-        ${direction === 'horizontal' 
-          ? 'w-1 h-full cursor-col-resize hover:bg-[#8b5cf6]/30 bg-transparent' 
-          : 'h-1 w-full cursor-row-resize hover:bg-[#8b5cf6]/30 bg-transparent'}
+        ${
+          direction === 'horizontal'
+            ? 'w-1 h-full cursor-col-resize hover:bg-[#8b5cf6]/30 bg-transparent'
+            : 'h-1 w-full cursor-row-resize hover:bg-[#8b5cf6]/30 bg-transparent'
+        }
       `}
       style={{
-        [direction === 'horizontal' ? (reverse ? 'right' : 'left') : (reverse ? 'bottom' : 'top')]: 0,
+        [direction === 'horizontal' ? (reverse ? 'right' : 'left') : reverse ? 'bottom' : 'top']: 0,
       }}
     >
       {direction === 'horizontal' ? (

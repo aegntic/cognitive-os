@@ -36,7 +36,7 @@ export function ChatPanel({ tool, onGenerate, onIterate, isGenerating, width }: 
 
     const prompt = input.trim()
     setInput('')
-    
+
     if (!tool || !tool.code) {
       onGenerate(prompt)
     } else {
@@ -59,10 +59,7 @@ export function ChatPanel({ tool, onGenerate, onIterate, isGenerating, width }: 
   }
 
   return (
-    <div 
-      className="flex flex-col bg-[#111] border-r border-[#222]"
-      style={{ width, minWidth: 280, maxWidth: 600 }}
-    >
+    <div className="flex flex-col bg-[#111] border-r border-[#222]" style={{ width, minWidth: 280, maxWidth: 600 }}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#222]">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-[#8b5cf6]" />
@@ -90,19 +87,15 @@ export function ChatPanel({ tool, onGenerate, onIterate, isGenerating, width }: 
         ) : (
           messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-              <div 
+              <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                   msg.role === 'user' ? 'bg-[#333] text-white' : 'bg-[#8b5cf6] text-black'
                 }`}
               >
                 {msg.role === 'user' ? '✦' : '◆'}
               </div>
-              <div 
-                className={`max-w-[80%] ${
-                  msg.role === 'user' ? 'text-right' : ''
-                }`}
-              >
-                <div 
+              <div className={`max-w-[80%] ${msg.role === 'user' ? 'text-right' : ''}`}>
+                <div
                   className={`px-4 py-2 rounded-2xl text-sm ${
                     msg.role === 'user'
                       ? 'bg-[#2a2a2a] text-white rounded-tr-none'
@@ -126,7 +119,10 @@ export function ChatPanel({ tool, onGenerate, onIterate, isGenerating, width }: 
           <textarea
             ref={textareaRef}
             value={input}
-            onChange={(e) => { setInput(e.target.value); autoResize() }}
+            onChange={(e) => {
+              setInput(e.target.value)
+              autoResize()
+            }}
             onKeyDown={handleKeyDown}
             placeholder={tool?.code ? 'Refine your tool...' : 'Describe your vision...'}
             disabled={isGenerating}
@@ -140,15 +136,13 @@ export function ChatPanel({ tool, onGenerate, onIterate, isGenerating, width }: 
             className="absolute right-2 bottom-2 p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed
               bg-[#8b5cf6] text-black hover:bg-[#7c3aed] active:bg-[#6d28d9]"
           >
-            {isGenerating ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </button>
         </div>
         <p className="text-xs text-[#555] mt-2 text-center">
-          {tool?.code ? 'Press Enter to iterate • Shift+Enter for new line' : 'Press Enter to generate • Shift+Enter for new line'}
+          {tool?.code
+            ? 'Press Enter to iterate • Shift+Enter for new line'
+            : 'Press Enter to generate • Shift+Enter for new line'}
         </p>
       </form>
     </div>

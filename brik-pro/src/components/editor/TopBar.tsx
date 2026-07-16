@@ -1,6 +1,19 @@
 // Brik Pro - Top Bar
 import { useState } from 'react'
-import { Plus, Download, Code, ExternalLink, Settings, ChevronDown, MoreHorizontal, Trash2, Copy, Image, Video, GitBranch } from 'lucide-react'
+import {
+  Plus,
+  Download,
+  Code,
+  ExternalLink,
+  Settings,
+  ChevronDown,
+  MoreHorizontal,
+  Trash2,
+  Copy,
+  Image,
+  Video,
+  GitBranch,
+} from 'lucide-react'
 import type { Tool, ExportOptions } from '@/lib/types'
 import { storage, generateId } from '@/lib/storage'
 import { cn } from '@/lib/utils'
@@ -18,7 +31,7 @@ export function TopBar({ tools, activeToolId, onToolSelect, onNewTool, onExport,
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showToolMenu, setShowToolMenu] = useState<string | null>(null)
-  const activeTool = tools.find(t => t.id === activeToolId)
+  const activeTool = tools.find((t) => t.id === activeToolId)
 
   const handleExport = async (format: 'image' | 'video' | 'code' | 'embed') => {
     if (!activeTool) return
@@ -68,7 +81,7 @@ export function TopBar({ tools, activeToolId, onToolSelect, onNewTool, onExport,
         </div>
 
         <div className="hidden md:flex items-center gap-1 bg-[#1a1a1a] rounded-lg p-1 border border-[#222]">
-          {tools.map(tool => (
+          {tools.map((tool) => (
             <button
               key={tool.id}
               onClick={() => onToolSelect(tool.id)}
@@ -133,16 +146,28 @@ export function TopBar({ tools, activeToolId, onToolSelect, onNewTool, onExport,
             </button>
             {showExportMenu && (
               <div className="absolute top-full right-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-lg shadow-lg py-1 z-50 min-w-[180px]">
-                <button onClick={() => handleExport('image')} className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2">
+                <button
+                  onClick={() => handleExport('image')}
+                  className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2"
+                >
                   <Image className="w-4 h-4" /> Image (PNG/JPG)
                 </button>
-                <button onClick={() => handleExport('video')} className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2">
+                <button
+                  onClick={() => handleExport('video')}
+                  className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2"
+                >
                   <Video className="w-4 h-4" /> Video (MP4/WebM)
                 </button>
-                <button onClick={() => handleExport('code')} className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2">
+                <button
+                  onClick={() => handleExport('code')}
+                  className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2"
+                >
                   <Code className="w-4 h-4" /> Code (HTML)
                 </button>
-                <button onClick={() => handleExport('embed')} className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2">
+                <button
+                  onClick={() => handleExport('embed')}
+                  className="w-full px-3 py-2 text-sm text-white hover:bg-[#222] flex items-center gap-2"
+                >
                   <ExternalLink className="w-4 h-4" /> Embed (iframe)
                 </button>
               </div>

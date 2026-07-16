@@ -1,14 +1,6 @@
 // Brik Pro - Core Type Definitions
 
-export type ControllerType = 
-  | 'slider' 
-  | 'toggle' 
-  | 'dropdown' 
-  | 'color' 
-  | 'text' 
-  | 'file' 
-  | 'button'
-  | 'number'
+export type ControllerType = 'slider' | 'toggle' | 'dropdown' | 'color' | 'text' | 'file' | 'button' | 'number'
 
 export interface Controller {
   id: string
@@ -69,7 +61,7 @@ export interface VersionEntry {
   description: string
   createdAt: number
   authorId: string
-  parentVersionId?: string  // for git-style history chain
+  parentVersionId?: string // for git-style history chain
   commitMessage?: string
 }
 

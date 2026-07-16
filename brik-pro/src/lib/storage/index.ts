@@ -1,6 +1,15 @@
 // Brik Pro - Local Storage Layer using IndexedDB
 import { openDB, DBSchema, IDBPDatabase } from 'idb'
-import type { Tool, Project, VersionEntry, ChatMessage, AppSettings, GalleryTool, ControllerType, Controller } from '@/lib/types'
+import type {
+  Tool,
+  Project,
+  VersionEntry,
+  ChatMessage,
+  AppSettings,
+  GalleryTool,
+  ControllerType,
+  Controller,
+} from '@/lib/types'
 
 interface BrikProDB extends DBSchema {
   tools: {
@@ -202,47 +211,45 @@ export const storage = {
   async exportProject(projectId: string): Promise<string> {
     const project = await this.getProject(projectId)
     if (!project) throw new Error('Project not found')
-    
-    const tools = await Promise.all(
-      project.tools.map(toolId => this.getTool(toolId))
-    )
-    
-    const versions = await Promise.all(
-      project.tools.map(toolId => this.getVersions(toolId))
-    )
-    
-    const chatHistory = await Promise.all(
-      project.tools.map(toolId => this.getChatHistory(toolId))
-    )
 
-    return JSON.stringify({
-      project,
-      tools: tools.filter(Boolean),
-      versions: versions.flat(),
-      chatHistory: chatHistory.flat(),
-      exportedAt: Date.now(),
-    }, null, 2)
+    const tools = await Promise.all(project.tools.map((toolId) => this.getTool(toolId)))
+
+    const versions = await Promise.all(project.tools.map((toolId) => this.getVersions(toolId)))
+
+    const chatHistory = await Promise.all(project.tools.map((toolId) => this.getChatHistory(toolId)))
+
+    return JSON.stringify(
+      {
+        project,
+        tools: tools.filter(Boolean),
+        versions: versions.flat(),
+        chatHistory: chatHistory.flat(),
+        exportedAt: Date.now(),
+      },
+      null,
+      2
+    )
   },
 
   async importProject(json: string): Promise<Project> {
     const data = JSON.parse(json)
-    
+
     for (const tool of data.tools) {
       await this.saveTool(tool)
     }
-    
+
     for (const version of data.versions) {
       await this.createVersion(version)
     }
-    
+
     for (const message of data.chatHistory) {
       await this.saveChatMessage(message)
     }
-    
+
     const project = data.project
     project.tools = data.tools.map((t: Tool) => t.id)
     await this.saveProject(project)
-    
+
     return project
   },
 }

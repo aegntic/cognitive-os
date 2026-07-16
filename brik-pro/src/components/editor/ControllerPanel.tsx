@@ -21,26 +21,26 @@ export function ControllerPanel({ tool, onControllerChange, width }: ControllerP
           <h3 className="text-white font-medium">Controllers</h3>
           <p className="text-xs text-[#666] mt-1">Select a tool to see its controllers</p>
         </div>
-        <div className="flex-1 flex items-center justify-center text-[#666] text-sm">
-          No tool selected
-        </div>
+        <div className="flex-1 flex items-center justify-center text-[#666] text-sm">No tool selected</div>
       </div>
     )
   }
 
-  const sections = [...new Set(tool.controllers.map(c => c.section || 'Main'))]
+  const sections = [...new Set(tool.controllers.map((c) => c.section || 'Main'))]
 
   const handleValueChange = async (controller: Controller, value: unknown) => {
-    const updatedControllers = tool.controllers.map(c => 
-      c.id === controller.id ? { ...c, value } : c
-    )
+    const updatedControllers = tool.controllers.map((c) => (c.id === controller.id ? { ...c, value } : c))
     const updatedTool = { ...tool, controllers: updatedControllers, updatedAt: Date.now() }
     await storage.saveTool(updatedTool)
     onControllerChange(controller.id, value)
   }
 
   const handleAddController = async () => {
-    const newController = createDefaultController('slider', `Control ${tool.controllers.length + 1}`, tool.controllers.length)
+    const newController = createDefaultController(
+      'slider',
+      `Control ${tool.controllers.length + 1}`,
+      tool.controllers.length
+    )
     newController.section = sections[0] || 'Main'
     const updatedControllers = [...tool.controllers, newController]
     const updatedTool = { ...tool, controllers: updatedControllers, updatedAt: Date.now() }
@@ -48,28 +48,24 @@ export function ControllerPanel({ tool, onControllerChange, width }: ControllerP
   }
 
   const handleDeleteController = async (controllerId: string) => {
-    const updatedControllers = tool.controllers.filter(c => c.id !== controllerId)
+    const updatedControllers = tool.controllers.filter((c) => c.id !== controllerId)
     const updatedTool = { ...tool, controllers: updatedControllers, updatedAt: Date.now() }
     await storage.saveTool(updatedTool)
   }
 
   const handleUpdateController = async (updatedController: Controller) => {
-    const updatedControllers = tool.controllers.map(c => 
-      c.id === updatedController.id ? updatedController : c
-    )
+    const updatedControllers = tool.controllers.map((c) => (c.id === updatedController.id ? updatedController : c))
     const updatedTool = { ...tool, controllers: updatedControllers, updatedAt: Date.now() }
     await storage.saveTool(updatedTool)
     setEditingController(null)
   }
 
   const handleSectionToggle = (section: string) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }))
   }
 
-  const getSectionControllers = (section: string) => 
-    tool.controllers
-      .filter(c => (c.section || 'Main') === section)
-      .sort((a, b) => a.order - b.order)
+  const getSectionControllers = (section: string) =>
+    tool.controllers.filter((c) => (c.section || 'Main') === section).sort((a, b) => a.order - b.order)
 
   const renderController = (controller: Controller) => {
     if (editMode) {
@@ -135,11 +131,9 @@ export function ControllerPanel({ tool, onControllerChange, width }: ControllerP
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3" style={{ minHeight: 0 }}>
         {sections.length === 0 ? (
-          <div className="text-center text-[#666] text-sm py-8">
-            No controllers yet. Click + to add one.
-          </div>
+          <div className="text-center text-[#666] text-sm py-8">No controllers yet. Click + to add one.</div>
         ) : (
-          sections.map(section => {
+          sections.map((section) => {
             const controllers = getSectionControllers(section)
             const isExpanded = expandedSections[section] !== false
             return (
@@ -149,19 +143,13 @@ export function ControllerPanel({ tool, onControllerChange, width }: ControllerP
                   className="flex items-center justify-between w-full px-2 py-1.5 text-xs font-medium text-[#888] hover:text-white rounded"
                 >
                   <span className="flex items-center gap-1.5">
-                    {isExpanded ? (
-                      <ChevronDown className="w-3 h-3" />
-                    ) : (
-                      <ChevronRight className="w-3 h-3" />
-                    )}
+                    {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                     {section}
                     <span className="px-1.5 py-0.5 text-[10px] bg-[#222] rounded">{controllers.length}</span>
                   </span>
                 </button>
                 {isExpanded && (
-                  <div className="space-y-2 ml-2 border-l border-[#222] pl-3">
-                    {controllers.map(renderController)}
-                  </div>
+                  <div className="space-y-2 ml-2 border-l border-[#222] pl-3">{controllers.map(renderController)}</div>
                 )}
               </div>
             )
@@ -172,11 +160,11 @@ export function ControllerPanel({ tool, onControllerChange, width }: ControllerP
   )
 }
 
-function ControllerInput({ 
-  controller, 
-  value, 
-  onChange 
-}: { 
+function ControllerInput({
+  controller,
+  value,
+  onChange,
+}: {
   controller: Controller
   value: unknown
   onChange: (v: unknown) => void
@@ -215,9 +203,7 @@ function ControllerInput({
           <button
             type="button"
             onClick={() => onChange(!boolValue)}
-            className={`relative w-10 h-6 rounded-full transition-colors ${
-              boolValue ? 'bg-[#8b5cf6]' : 'bg-[#333]'
-            }`}
+            className={`relative w-10 h-6 rounded-full transition-colors ${boolValue ? 'bg-[#8b5cf6]' : 'bg-[#333]'}`}
           >
             <span
               className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
@@ -238,7 +224,9 @@ function ControllerInput({
             className="w-full bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#8b5cf6]"
           >
             {options?.map((opt, i) => (
-              <option key={i} value={opt}>{opt}</option>
+              <option key={i} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         </div>
@@ -300,13 +288,13 @@ function ControllerInput({
   }
 }
 
-function ControllerEditor({ 
-  controller, 
-  onSave, 
-  onCancel, 
-  onDelete, 
-  sections 
-}: { 
+function ControllerEditor({
+  controller,
+  onSave,
+  onCancel,
+  onDelete,
+  sections,
+}: {
   controller: Controller
   onSave: (c: Controller) => void
   onCancel: () => void
@@ -327,7 +315,7 @@ function ControllerEditor({
   })
 
   const handleChange = (field: string, value: any) => {
-    setForm(prev => ({ ...prev, [field]: value }))
+    setForm((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -391,8 +379,10 @@ function ControllerEditor({
             onChange={(e) => handleChange('type', e.target.value)}
             className="w-full bg-[#111] border border-[#333] rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-[#8b5cf6]"
           >
-            {['slider', 'toggle', 'dropdown', 'color', 'text', 'file', 'button', 'number'].map(t => (
-              <option key={t} value={t}>{t}</option>
+            {['slider', 'toggle', 'dropdown', 'color', 'text', 'file', 'button', 'number'].map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>
@@ -404,7 +394,11 @@ function ControllerEditor({
             onChange={(e) => handleChange('section', e.target.value)}
             className="w-full bg-[#111] border border-[#333] rounded px-2 py-1.5 text-white text-sm focus:outline-none focus:border-[#8b5cf6]"
           >
-            {sections.map(s => <option key={s} value={s}>{s}</option>)}
+            {sections.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
         </div>
 
