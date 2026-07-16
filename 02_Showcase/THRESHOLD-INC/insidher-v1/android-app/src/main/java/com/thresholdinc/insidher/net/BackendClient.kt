@@ -70,26 +70,6 @@ class BackendClient(
         return env.data.orEmpty()
     }
 
-    fun createPersona(name: String, tone: String): RemotePersona {
-        val policy = buildJsonObject {
-            put("timezone", JsonPrimitive("Australia/Sydney"))
-            put("weeklyWindows", JsonObject(emptyMap()))
-            put("dndPeriods", kotlinx.serialization.json.JsonArray(emptyList()))
-            put("dateOverrides", JsonObject(emptyMap()))
-        }
-        val body = json.encodeToString(
-            CreatePersonaBody.serializer(),
-            CreatePersonaBody(
-                name = name,
-                tone = tone,
-                availabilityPolicy = policy,
-            ),
-        )
-        val raw = request("POST", "/api/personas", body, signed = true)
-        val env = json.decodeFromString(ApiEnvelope.serializer(RemotePersona.serializer()), raw)
-        return env.data ?: error(env.error?.message ?: "create persona failed")
-    }
-
     fun submitInboundSms(from: String, body: String, timestampIso: String): String {
         val payload = json.encodeToString(
             InboundSmsBody.serializer(),
@@ -114,12 +94,55 @@ class BackendClient(
         )
     }
 
-    fun submitHumanDecision(threadId: String, decision: String, note: String? = null) {
+    fun listDeposits(threadId: String): List<RemoteDeposit> {
+        val raw = request("GET", "/api/threads/$threadId/deposits", "", signed = true)
+        val env = json.decodeFromString(ApiEnvelope.serializer(ListSerializer(RemoteDeposit.serializer())), raw)
+        return env.data.orEmpty()
+    }
+
+    fun submitHumanDecision(
+        threadId: String,
+        decision: String,
+        note: String? = null,
+        expectedRevision: Int? = null,
+    ) {
         val body = buildJsonObject {
             put("decision", JsonPrimitive(decision))
             if (note != null) put("note", JsonPrimitive(note))
+            if (expectedRevision != null) put("expectedRevision", JsonPrimitive(expectedRevision))
         }.toString()
         request("POST", "/api/threads/$threadId/decision", body, signed = true)
+    }
+
+    fun createPersona(
+        name: String,
+        tone: String,
+        vocabulary: List<String> = emptyList(),
+        offerings: List<String> = emptyList(),
+        depositWording: String? = null,
+        boundaries: List<String>? = null,
+    ): RemotePersona {
+        val policy = buildJsonObject {
+            put("timezone", JsonPrimitive("Australia/Sydney"))
+            put("weeklyWindows", JsonObject(emptyMap()))
+            put("dndPeriods", kotlinx.serialization.json.JsonArray(emptyList()))
+            put("dateOverrides", JsonObject(emptyMap()))
+        }
+        val body = json.encodeToString(
+            CreatePersonaBody.serializer(),
+            CreatePersonaBody(
+                name = name,
+                tone = tone,
+                vocabulary = vocabulary,
+                offerings = offerings,
+                depositWording = depositWording,
+                boundaries = boundaries,
+                availabilityPolicy = policy,
+            ),
+        )
+        val raw = request("POST", "/api/personas", body, signed = true)
+        val env = json.decodeFromString(ApiEnvelope.serializer(RemotePersona.serializer()), raw)
+        return env.data ?: error(env.error?.message ?: "create persona failed")
     }
 
     private fun request(

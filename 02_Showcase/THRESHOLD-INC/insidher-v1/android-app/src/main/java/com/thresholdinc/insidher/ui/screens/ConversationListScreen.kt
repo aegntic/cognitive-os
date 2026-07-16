@@ -111,7 +111,15 @@ fun ConversationListScreen(onOpenThread: (String) -> Unit) {
                     ) {
                         Column(Modifier.padding(16.dp)) {
                             Text(t.clientPhone, style = MaterialTheme.typography.titleMedium)
-                            Text(t.state, style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                if (t.state == "HUMAN_REVIEW") "⚠ Needs approval · HUMAN_REVIEW" else t.state,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (t.state == "HUMAN_REVIEW") {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface
+                                },
+                            )
                             if (t.lastMessagePreview.isNotBlank()) {
                                 Text(t.lastMessagePreview, style = MaterialTheme.typography.bodyMedium)
                             }

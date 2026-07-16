@@ -96,6 +96,19 @@ data class InboundSmsBody(
     val timestamp: String,
 )
 
+@Serializable
+data class RemoteDeposit(
+    val id: String,
+    val threadId: String,
+    val amount: Double,
+    val currency: String = "AUD",
+    val status: String,
+    val evidenceType: String? = null,
+    val evidenceRef: String? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+)
+
 /** Local UI models (not necessarily wire format). */
 data class CachedThread(
     val id: String,

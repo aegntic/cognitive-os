@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,11 +29,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** m1-android-persona: richer persona capture (still ~60s setup). */
 @Composable
 fun OnboardingScreen(onDone: () -> Unit) {
     val app = LocalContext.current.applicationContext as InsidherApp
     var name by remember { mutableStateOf(app.prefs.personaName.orEmpty().ifBlank { "Insidher" }) }
     var tone by remember { mutableStateOf("warm, discreet, confident") }
+    var vocabulary by remember { mutableStateOf("babe, hun, x") }
+    var offerings by remember { mutableStateOf("companionship, dinner dates") }
+    var depositWording by remember { mutableStateOf("Just a small hold to lock the time") }
+    var boundaries by remember { mutableStateOf("no freebies, deposit first") }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -39,6 +46,7 @@ fun OnboardingScreen(onDone: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -46,10 +54,10 @@ fun OnboardingScreen(onDone: () -> Unit) {
         Text("Persona setup", style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Creates your agent persona and registers this device.",
+            "Tone, offerings, deposit wording, and boundaries for this device.",
             style = MaterialTheme.typography.bodyMedium,
         )
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
@@ -57,11 +65,39 @@ fun OnboardingScreen(onDone: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = tone,
             onValueChange = { tone = it },
             label = { Text("Tone") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = vocabulary,
+            onValueChange = { vocabulary = it },
+            label = { Text("Vocabulary (comma-separated)") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = offerings,
+            onValueChange = { offerings = it },
+            label = { Text("Offerings") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = depositWording,
+            onValueChange = { depositWording = it },
+            label = { Text("Deposit wording") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = boundaries,
+            onValueChange = { boundaries = it },
+            label = { Text("Boundaries") },
             modifier = Modifier.fillMaxWidth(),
         )
         if (error != null) {
@@ -82,17 +118,25 @@ fun OnboardingScreen(onDone: () -> Unit) {
                                 app.ensureDeviceRegistered()
                                 val client = app.backendClient
                                     ?: error("Backend not ready")
-                                // Re-register if online
                                 try {
                                     client.registerDevice(
                                         app.keyStore.publicKeySpkiBase64(),
                                         android.os.Build.MODEL,
                                     )
-                                } catch (_: Exception) { /* offline ok for local-only */ }
+                                } catch (_: Exception) { /* offline ok */ }
+                                val vocab = vocabulary.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                                val offers = offerings.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                                val bounds = boundaries.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                                 val persona = try {
-                                    client.createPersona(name.trim(), tone.trim())
+                                    client.createPersona(
+                                        name = name.trim(),
+                                        tone = tone.trim(),
+                                        vocabulary = vocab,
+                                        offerings = offers,
+                                        depositWording = depositWording.trim().ifBlank { null },
+                                        boundaries = bounds.ifEmpty { null },
+                                    )
                                 } catch (e: Exception) {
-                                    // offline fallback: local-only onboarding
                                     app.prefs.personaId = "local-${System.currentTimeMillis()}"
                                     app.prefs.personaName = name.trim()
                                     app.prefs.onboarded = true
@@ -104,7 +148,6 @@ fun OnboardingScreen(onDone: () -> Unit) {
                             }
                             onDone()
                         } catch (e: Exception) {
-                            // still allow proceed if prefs set offline
                             if (app.prefs.onboarded) {
                                 onDone()
                             } else {
