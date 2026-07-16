@@ -492,7 +492,7 @@ describe("Threads API", () => {
       const now = new Date().toISOString();
       await env.DB.prepare(
         "INSERT INTO threads (id, persona_id, client_phone, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      ).bind("escalate-thread", "test-persona", "+61400000000", "HUMAN_REVIEW", 1, now, now).run();
+      ).bind("escalate-thread", "test-persona", "+614****0000", "HUMAN_REVIEW", 1, now, now).run();
 
       const body = JSON.stringify({ decision: "ESCALATE" });
 
@@ -506,6 +506,122 @@ describe("Threads API", () => {
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.data.state).toBe("ESCALATED");
+    });
+
+    it("should CAS-fail on wrong expectedRevision", async () => {
+      const now = new Date().toISOString();
+      await env.DB.prepare(
+        "INSERT INTO threads (id, persona_id, client_phone, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ).bind("cas-thread", "test-persona", "+614****0000", "HUMAN_REVIEW", 3, now, now).run();
+
+      const body = JSON.stringify({ decision: "APPROVE", expectedRevision: 1 });
+
+      const res = await authFetch(
+        "/api/threads/cas-thread/decision",
+        testKeys.privateKey,
+        deviceId,
+        { method: "POST", body },
+      );
+
+      expect(res.status).toBe(409);
+    });
+
+    it("should accept CAS with matching expectedRevision and write human_decision + safety_check", async () => {
+      const now = new Date().toISOString();
+      await env.DB.prepare(
+        "INSERT INTO threads (id, persona_id, client_phone, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ).bind("cas-ok", "test-persona", "+614****0000", "HUMAN_REVIEW", 2, now, now).run();
+
+      const body = JSON.stringify({ decision: "APPROVE", expectedRevision: 2 });
+
+      const res = await authFetch(
+        "/api/threads/cas-ok/decision",
+        testKeys.privateKey,
+        deviceId,
+        { method: "POST", body },
+      );
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.data.state).toBe("CONFIRMED");
+
+      const audits = await env.DB
+        .prepare("SELECT action, details FROM audit_logs WHERE thread_id = ?")
+        .bind("cas-ok")
+        .all();
+      const actions = (audits.results ?? []).map((r: any) => r.action);
+      expect(actions).toContain("human_decision");
+      expect(actions).toContain("safety_check");
+      expect(actions).toContain("state_transition");
+
+      const hd = (audits.results ?? []).find((r: any) => r.action === "human_decision");
+      expect(hd).toBeTruthy();
+      const details = JSON.parse(hd!.details as string);
+      expect(details.decision).toBe("APPROVE");
+    });
+
+    it("should support POST /approve convenience endpoint", async () => {
+      const now = new Date().toISOString();
+      await env.DB.prepare(
+        "INSERT INTO threads (id, persona_id, client_phone, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ).bind("conv-approve", "test-persona", "+614****0000", "HUMAN_REVIEW", 1, now, now).run();
+
+      const res = await authFetch(
+        "/api/threads/conv-approve/approve",
+        testKeys.privateKey,
+        deviceId,
+        { method: "POST", body: "{}" },
+      );
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.data.state).toBe("CONFIRMED");
+    });
+
+    it("should support POST /escalate convenience during HUMAN_REVIEW", async () => {
+      const now = new Date().toISOString();
+      await env.DB.prepare(
+        "INSERT INTO threads (id, persona_id, client_phone, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ).bind("conv-esc", "test-persona", "+614****0000", "HUMAN_REVIEW", 1, now, now).run();
+
+      const res = await authFetch(
+        "/api/threads/conv-esc/escalate",
+        testKeys.privateKey,
+        deviceId,
+        { method: "POST", body: JSON.stringify({ note: "owner escalate" }) },
+      );
+
+      expect(res.status).toBe(200);
+      const data = await res.json();
+      expect(data.data.state).toBe("ESCALATED");
+
+      const alert = await env.DB
+        .prepare("SELECT action FROM audit_logs WHERE thread_id = ? AND action = ?")
+        .bind("conv-esc", "owner_alert")
+        .first();
+      expect(alert).not.toBeNull();
+    });
+
+    it("should not enqueue confirmation SMS without APPROVE (reject path has no confirm message)", async () => {
+      const now = new Date().toISOString();
+      await env.DB.prepare(
+        "INSERT INTO threads (id, persona_id, client_phone, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      ).bind("no-confirm", "test-persona", "+614****0000", "HUMAN_REVIEW", 1, now, now).run();
+
+      const res = await authFetch(
+        "/api/threads/no-confirm/decision",
+        testKeys.privateKey,
+        deviceId,
+        { method: "POST", body: JSON.stringify({ decision: "REJECT" }) },
+      );
+      expect(res.status).toBe(200);
+
+      const msgs = await env.DB
+        .prepare("SELECT body FROM messages WHERE thread_id = ? AND direction = 'outbound'")
+        .bind("no-confirm")
+        .all();
+      const bodies = (msgs.results ?? []).map((r: any) => r.body as string);
+      expect(bodies.some((b) => /confirmed/i.test(b))).toBe(false);
     });
   });
 

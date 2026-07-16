@@ -1,4 +1,4 @@
-import type { AuditLog } from "../types";
+import type { AuditLog, SafetyVerdictType, EscalationReasonCode } from "../types";
 
 export async function writeAuditLog(
   db: D1Database,
@@ -25,6 +25,95 @@ export async function writeAuditLog(
       now,
     )
     .run();
+}
+
+/** Safety verdict hook — deposit / human-decision / outbound paths */
+export async function logSafetyCheck(
+  db: D1Database,
+  data: {
+    threadId: string;
+    verdict: SafetyVerdictType;
+    direction: "inbound" | "outbound";
+    reasonCode?: EscalationReasonCode | string | null;
+    confidence?: number;
+    contentSnippet?: string | null;
+    context?: string;
+  },
+): Promise<void> {
+  await writeAuditLog(db, {
+    threadId: data.threadId,
+    action: "safety_check",
+    actor: "worker:safety",
+    details: {
+      verdict: data.verdict,
+      direction: data.direction,
+      confidence: data.confidence ?? 1.0,
+      reasonCode: data.reasonCode ?? null,
+      content: data.contentSnippet ? data.contentSnippet.slice(0, 500) : null,
+      context: data.context ?? null,
+    },
+  });
+}
+
+export async function logHumanDecision(
+  db: D1Database,
+  data: {
+    threadId: string;
+    decision: "APPROVE" | "REJECT" | "ESCALATE";
+    actor?: string;
+    note?: string | null;
+    expectedRevision?: number | null;
+  },
+): Promise<void> {
+  await writeAuditLog(db, {
+    threadId: data.threadId,
+    action: "human_decision",
+    actor: data.actor ?? "owner",
+    details: {
+      decision: data.decision,
+      note: data.note ?? null,
+      expectedRevision: data.expectedRevision ?? null,
+    },
+  });
+}
+
+export async function logDepositAction(
+  db: D1Database,
+  data: {
+    threadId: string;
+    depositId: string;
+    action: string;
+    actor?: string;
+    details?: Record<string, unknown>;
+  },
+): Promise<void> {
+  await writeAuditLog(db, {
+    threadId: data.threadId,
+    action: "deposit",
+    actor: data.actor ?? "system",
+    details: {
+      depositId: data.depositId,
+      depositAction: data.action,
+      ...(data.details ?? {}),
+    },
+  });
+}
+
+/** True if an APPROVE human_decision was recorded for this thread (confirmation gate). */
+export async function hasApproveDecision(
+  db: D1Database,
+  threadId: string,
+): Promise<boolean> {
+  const row = await db
+    .prepare(
+      `SELECT id FROM audit_logs
+       WHERE thread_id = ? AND action = 'human_decision'
+         AND details LIKE '%"decision":"APPROVE"%'
+       LIMIT 1`,
+    )
+    .bind(threadId)
+    .first();
+  return row != null;
 }
 
 export async function getAuditLogs(

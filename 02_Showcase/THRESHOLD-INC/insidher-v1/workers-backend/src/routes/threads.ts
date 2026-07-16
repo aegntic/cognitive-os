@@ -12,7 +12,12 @@ import {
 } from "../db/threads";
 import { getPersonaOrNull } from "../db/personas";
 import { createMessage, listMessages } from "../db/messages";
-import { writeAuditLog } from "../db/audit";
+import {
+  writeAuditLog,
+  logHumanDecision,
+  logSafetyCheck,
+  hasApproveDecision,
+} from "../db/audit";
 
 const threads = new Hono<{ Bindings: Env; Variables: { deviceId: string } }>();
 
@@ -342,24 +347,14 @@ threads.post("/:threadId/resume", async (c) => {
   }
 });
 
-// POST /api/threads/:threadId/decision - Submit human decision
-threads.post("/:threadId/decision", async (c) => {
-  const threadId = c.req.param("threadId")!;
-  const body = await c.req.json().catch(() => null);
-
-  if (!body) {
-    return c.json(errorResponse(400, "BAD_REQUEST", "Invalid JSON body"), 400);
-  }
-
-  const { decision, note, owner } = body;
-
-  if (!decision || !["APPROVE", "REJECT", "ESCALATE"].includes(decision)) {
-    return c.json(
-      errorResponse(400, "BAD_REQUEST", "Missing or invalid decision (must be APPROVE, REJECT, or ESCALATE)"),
-      400,
-    );
-  }
-
+// Shared human-decision application (CAS on revision, no confirm SMS without APPROVE)
+async function applyHumanDecision(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  c: any,
+  threadId: string,
+  decision: "APPROVE" | "REJECT" | "ESCALATE",
+  opts: { note?: string | null; owner?: string; expectedRevision?: number },
+): Promise<Response> {
   const thread = await getThreadOrNull(c.env.DB, threadId);
   if (!thread) {
     return c.json(errorResponse(404, "NOT_FOUND", "Thread not found"), 404);
@@ -367,12 +362,32 @@ threads.post("/:threadId/decision", async (c) => {
 
   if (thread.state !== "HUMAN_REVIEW") {
     return c.json(
-      errorResponse(409, "CONFLICT", `Thread is not in HUMAN_REVIEW state (current: ${thread.state})`),
+      errorResponse(
+        409,
+        "CONFLICT",
+        `Thread is not in HUMAN_REVIEW state (current: ${thread.state})`,
+      ),
       409,
     );
   }
 
-  // Determine target state
+  // CAS: client may supply expectedRevision; default to current (optimistic)
+  const expectedRevision =
+    typeof opts.expectedRevision === "number"
+      ? opts.expectedRevision
+      : thread.revision;
+
+  if (expectedRevision !== thread.revision) {
+    return c.json(
+      errorResponse(
+        409,
+        "CONFLICT",
+        "Revision mismatch - concurrent modification detected",
+      ),
+      409,
+    );
+  }
+
   let targetState: ThreadState;
   if (decision === "APPROVE") {
     targetState = "CONFIRMED";
@@ -382,71 +397,103 @@ threads.post("/:threadId/decision", async (c) => {
     targetState = "ESCALATED";
   }
 
-  // Perform transition
+  const actor = opts.owner ?? (c.get("deviceId") as string) ?? "owner";
+
   const result = await transitionState(
     c.env.DB,
     threadId,
     targetState,
-    thread.revision,
-    owner ?? "owner",
+    expectedRevision,
+    actor,
+    { humanDecision: decision },
   );
 
   if (!result.success || !result.thread) {
     return c.json(
-      errorResponse(409, "CONFLICT", "Failed to apply decision (concurrent modification)"),
+      errorResponse(
+        409,
+        "CONFLICT",
+        "Failed to apply decision (concurrent modification)",
+      ),
       409,
     );
   }
 
-  // Write decision audit log
-  await writeAuditLog(c.env.DB, {
+  await logHumanDecision(c.env.DB, {
     threadId,
-    action: "human_decision",
-    actor: owner ?? "owner",
-    details: { decision, note: note ?? null },
+    decision,
+    actor,
+    note: opts.note ?? null,
+    expectedRevision,
   });
 
-  // Enqueue SMS based on decision
-  if (decision === "APPROVE") {
-    // Enqueue confirmation SMS
-    const message = await createMessage(c.env.DB, {
-      id: crypto.randomUUID(),
-      threadId,
-      direction: "outbound",
-      body: "Your booking is confirmed! See you soon. 💋",
-      timestamp: new Date().toISOString(),
-      worker: "system",
-      confidence: 1.0,
-    });
+  // Safety hook on human decision path
+  await logSafetyCheck(c.env.DB, {
+    threadId,
+    verdict: "SAFE",
+    direction: "outbound",
+    context: `human_decision:${decision}`,
+    contentSnippet: opts.note ?? decision,
+  });
 
-    try {
-      await c.env.SMS_QUEUE.send({
-        threadId,
-        messageId: message.id,
-        body: message.body,
-        phoneNumber: thread.clientPhone,
-        deviceId: c.get("deviceId") as string,
-        delaySeconds: 0,
-        sequence: 0,
-      });
-    } catch {
-      // Log queue failure but don't fail the decision
+  // Invariant: confirmation SMS only after HumanDecision.APPROVE
+  if (decision === "APPROVE") {
+    // Double-check gate (audit row must exist before enqueue)
+    const approved = await hasApproveDecision(c.env.DB, threadId);
+    if (!approved) {
       await writeAuditLog(c.env.DB, {
         threadId,
-        action: "sms_queue_failed",
+        action: "block_final_sms",
         actor: "system",
-        details: { messageId: message.id },
+        details: { reason: "missing_approve_audit" },
       });
+    } else {
+      const confirmBody = "Your booking is confirmed! See you soon. 💋";
+      await logSafetyCheck(c.env.DB, {
+        threadId,
+        verdict: "SAFE",
+        direction: "outbound",
+        context: "confirmation_sms",
+        contentSnippet: confirmBody,
+      });
+
+      const message = await createMessage(c.env.DB, {
+        id: crypto.randomUUID(),
+        threadId,
+        direction: "outbound",
+        body: confirmBody,
+        timestamp: new Date().toISOString(),
+        worker: "human_gate",
+        confidence: 1.0,
+      });
+
+      try {
+        await c.env.SMS_QUEUE.send({
+          threadId,
+          messageId: message.id,
+          body: message.body,
+          phoneNumber: thread.clientPhone,
+          deviceId: c.get("deviceId") as string,
+          delaySeconds: 0,
+          sequence: 0,
+        });
+      } catch {
+        await writeAuditLog(c.env.DB, {
+          threadId,
+          action: "sms_queue_failed",
+          actor: "system",
+          details: { messageId: message.id },
+        });
+      }
     }
   } else if (decision === "REJECT") {
-    // Enqueue polite decline SMS
     const message = await createMessage(c.env.DB, {
       id: crypto.randomUUID(),
       threadId,
       direction: "outbound",
       body: "Hey, sorry but I won't be able to make that work. Wishing you the best! 💕",
       timestamp: new Date().toISOString(),
-      worker: "system",
+      worker: "human_gate",
       confidence: 1.0,
     });
 
@@ -484,6 +531,53 @@ threads.post("/:threadId/decision", async (c) => {
   };
 
   return c.json(response, 200);
+}
+
+// POST /api/threads/:threadId/decision - Submit human decision
+threads.post("/:threadId/decision", async (c) => {
+  const threadId = c.req.param("threadId")!;
+  const body = await c.req.json().catch(() => null);
+
+  if (!body) {
+    return c.json(errorResponse(400, "BAD_REQUEST", "Invalid JSON body"), 400);
+  }
+
+  const { decision, note, owner, expectedRevision } = body;
+
+  if (!decision || !["APPROVE", "REJECT", "ESCALATE"].includes(decision)) {
+    return c.json(
+      errorResponse(
+        400,
+        "BAD_REQUEST",
+        "Missing or invalid decision (must be APPROVE, REJECT, or ESCALATE)",
+      ),
+      400,
+    );
+  }
+
+  return applyHumanDecision(c as any, threadId, decision, {
+    note: note ?? null,
+    owner,
+    expectedRevision:
+      typeof expectedRevision === "number" ? expectedRevision : undefined,
+  });
 });
+
+// Convenience: POST /api/threads/:threadId/approve|reject|escalate
+for (const d of ["approve", "reject", "escalate"] as const) {
+  threads.post(`/:threadId/${d}`, async (c) => {
+    const threadId = c.req.param("threadId")!;
+    const body = await c.req.json().catch(() => ({}));
+    const decision = d.toUpperCase() as "APPROVE" | "REJECT" | "ESCALATE";
+    return applyHumanDecision(c as any, threadId, decision, {
+      note: body?.note ?? null,
+      owner: body?.owner,
+      expectedRevision:
+        typeof body?.expectedRevision === "number"
+          ? body.expectedRevision
+          : undefined,
+    });
+  });
+}
 
 export default threads;

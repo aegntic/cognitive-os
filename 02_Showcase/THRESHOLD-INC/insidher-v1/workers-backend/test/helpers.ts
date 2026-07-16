@@ -1,15 +1,15 @@
 import { env, SELF } from "cloudflare:test";
 import { initDatabase } from "../src/db/init";
 
-let initialized = false;
-
 export async function setupTestDb(): Promise<void> {
-  if (initialized) return;
+  // Always ensure schema — isolated D1 resets between files/suites
   await initDatabase(env.DB);
-  initialized = true;
 }
 
 export async function clearTestData(): Promise<void> {
+  // Ensure tables exist before DELETE (isolation can reset D1)
+  await initDatabase(env.DB);
+
   const tables = [
     "outbound_sms",
     "rate_limits",

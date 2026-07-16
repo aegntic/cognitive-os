@@ -1,5 +1,5 @@
 import type { Env } from "../types";
-import { writeAuditLog } from "../db/audit";
+import { expireStaleDeposits } from "../db/deposits";
 
 // Cleanup cron handler (runs hourly)
 // Expires stale pending deposits and cleans up old data
@@ -7,27 +7,8 @@ export async function handleCleanup(env: Env): Promise<void> {
   const ttlHours = parseInt(env.CLEANUP_TTL_HOURS ?? "24", 10);
   const threshold = new Date(Date.now() - ttlHours * 60 * 60 * 1000).toISOString();
 
-  // Mark old pending deposits as FAILED
-  const depositResult = await env.DB.prepare(
-    `UPDATE deposits SET status = 'FAILED'
-     WHERE status = 'PENDING' AND created_at < ?`,
-  )
-    .bind(threshold)
-    .run();
-
-  const expiredDeposits = depositResult.meta?.changes ?? 0;
-
-  if (expiredDeposits > 0) {
-    await writeAuditLog(env.DB, {
-      threadId: null,
-      action: "cleanup_expired_deposits",
-      actor: "system",
-      details: {
-        expiredCount: expiredDeposits,
-        threshold: threshold,
-      },
-    });
-  }
+  // Mark old PENDING/RECEIVED deposits as FAILED (evidence timeout) with per-deposit audit
+  await expireStaleDeposits(env.DB, threshold);
 
   // Clean up old delivered outbound SMS (> 7 days)
   const sevenDaysAgo = new Date(
