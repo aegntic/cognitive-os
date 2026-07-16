@@ -45,8 +45,8 @@ binding = "SMS_DLQ"
 crons = ["*/5 * * * *", "0 * * * *"]
 
 [vars]
-OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-OPENROUTER_FALLBACK_MODEL = "qwen/qwen3-next-80b-a3b-instruct:free"
+OPENROUTER_MODEL = "openrouter/free"
+OPENROUTER_FALLBACK_MODEL = "openrouter/free"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 STALL_THRESHOLD_MINUTES = "30"
 CLEANUP_TTL_HOURS = "24"

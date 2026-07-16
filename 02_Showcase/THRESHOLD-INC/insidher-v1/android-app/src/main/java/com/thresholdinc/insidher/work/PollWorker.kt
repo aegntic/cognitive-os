@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -54,11 +56,19 @@ class PollWorker(
     companion object {
         private const val TAG = "InsidherPollWorker"
         const val UNIQUE_NAME = "insidher_outbound_poll"
+        private const val ONCE_NAME = "insidher_outbound_poll_once"
 
         fun schedule(context: Context) {
+            val wm = WorkManager.getInstance(context)
+            // ponytail: immediate one-shot so first outbound isn't stuck 15m; keep periodic for later
+            wm.enqueueUniqueWork(
+                ONCE_NAME,
+                ExistingWorkPolicy.REPLACE,
+                OneTimeWorkRequestBuilder<PollWorker>().build(),
+            )
             val req = PeriodicWorkRequestBuilder<PollWorker>(15, TimeUnit.MINUTES)
                 .build()
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            wm.enqueueUniquePeriodicWork(
                 UNIQUE_NAME,
                 ExistingPeriodicWorkPolicy.KEEP,
                 req,

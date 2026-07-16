@@ -144,7 +144,11 @@ app.onError(errorHandler);
 
 // Export the Hono app as default with queue and scheduled handlers
 export default {
-  fetch: (req: Request, env: Env, ctx: ExecutionContext) => app.fetch(req, env, ctx),
+  // ponytail: init schema on first HTTP too (was queue/cron-only; empty D1 500'd SMS)
+  async fetch(req: Request, env: Env, ctx: ExecutionContext) {
+    await ensureSchema(env.DB);
+    return app.fetch(req, env, ctx);
+  },
 
   // Queue consumer handlers
   async queue(
