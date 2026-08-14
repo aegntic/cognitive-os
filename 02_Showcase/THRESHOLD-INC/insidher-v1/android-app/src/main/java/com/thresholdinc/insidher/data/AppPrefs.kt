@@ -20,9 +20,18 @@ class AppPrefs(context: Context) {
         get() = prefs.getString(KEY_PERSONA_NAME, null)
         set(value) = prefs.edit().putString(KEY_PERSONA_NAME, value).apply()
 
+    /** Absolute path under app filesDir, or null. */
+    var profilePicturePath: String?
+        get() = prefs.getString(KEY_AVATAR, null)
+        set(value) = prefs.edit().putString(KEY_AVATAR, value).apply()
+
     var onboarded: Boolean
         get() = prefs.getBoolean(KEY_ONBOARDED, false)
         set(value) = prefs.edit().putBoolean(KEY_ONBOARDED, value).apply()
+
+    var walkthroughDone: Boolean
+        get() = prefs.getBoolean(KEY_WALKTHROUGH, false)
+        set(value) = prefs.edit().putBoolean(KEY_WALKTHROUGH, value).apply()
 
     var backendUrl: String
         get() = prefs.getString(KEY_BACKEND, null) ?: DEFAULT_BACKEND
@@ -33,8 +42,11 @@ class AppPrefs(context: Context) {
         private const val KEY_DEVICE_ID = "device_id"
         private const val KEY_PERSONA_ID = "persona_id"
         private const val KEY_PERSONA_NAME = "persona_name"
+        private const val KEY_AVATAR = "profile_picture_path"
         private const val KEY_ONBOARDED = "onboarded"
+        private const val KEY_WALKTHROUGH = "walkthrough_done"
         private const val KEY_BACKEND = "backend_url"
         const val DEFAULT_BACKEND = "http://10.0.2.2:8788"
+        const val AVATAR_FILE = "profile.jpg"
     }
 }

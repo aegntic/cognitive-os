@@ -20,6 +20,7 @@ import com.thresholdinc.insidher.ui.Routes
 import com.thresholdinc.insidher.ui.screens.ConversationDetailScreen
 import com.thresholdinc.insidher.ui.screens.ConversationListScreen
 import com.thresholdinc.insidher.ui.screens.OnboardingScreen
+import com.thresholdinc.insidher.ui.screens.WalkthroughScreen
 import com.thresholdinc.insidher.ui.theme.InsidherTheme
 
 class MainActivity : ComponentActivity() {
@@ -36,16 +37,33 @@ class MainActivity : ComponentActivity() {
             InsidherTheme {
                 val app = application as InsidherApp
                 val nav = rememberNavController()
-                var start by remember {
-                    mutableStateOf(
-                        if (app.prefs.onboarded) Routes.THREADS else Routes.ONBOARDING,
-                    )
+                val start = remember {
+                    when {
+                        !app.prefs.walkthroughDone -> Routes.WALKTHROUGH
+                        !app.prefs.onboarded -> Routes.ONBOARDING
+                        else -> Routes.THREADS
+                    }
                 }
                 NavHost(navController = nav, startDestination = start) {
+                    composable(Routes.WALKTHROUGH) {
+                        WalkthroughScreen(
+                            onFinished = {
+                                app.prefs.walkthroughDone = true
+                                if (app.prefs.onboarded) {
+                                    nav.navigate(Routes.THREADS) {
+                                        popUpTo(Routes.WALKTHROUGH) { inclusive = true }
+                                    }
+                                } else {
+                                    nav.navigate(Routes.ONBOARDING) {
+                                        popUpTo(Routes.WALKTHROUGH) { inclusive = true }
+                                    }
+                                }
+                            },
+                        )
+                    }
                     composable(Routes.ONBOARDING) {
                         OnboardingScreen(
                             onDone = {
-                                start = Routes.THREADS
                                 nav.navigate(Routes.THREADS) {
                                     popUpTo(Routes.ONBOARDING) { inclusive = true }
                                 }

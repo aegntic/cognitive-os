@@ -5,9 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -77,7 +79,17 @@ fun ConversationListScreen(onOpenThread: (String) -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(app.prefs.personaName ?: "Insidher") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ProfileAvatar(
+                            path = app.prefs.profilePicturePath,
+                            modifier = Modifier
+                                .padding(end = 10.dp)
+                                .size(32.dp),
+                        )
+                        Text(app.prefs.personaName ?: "Insidher")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { refresh() }) {
                         Icon(Icons.Default.Refresh, contentDescription = "Refresh")

@@ -69,3 +69,10 @@ brik-pro/.env
 brik-pro/.env.*
 brik-pro/*.log
 
+# Secrets (never commit, anywhere in tree)
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+!.env.example
+
