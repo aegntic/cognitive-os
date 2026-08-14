@@ -27,3 +27,9 @@ Never mix managers. Commit lockfile with manifest.
 
 ## GitNexus
 Run impact analysis before editing symbols. Detect changes before commit.
+
+## Active Project: aegntic.ai
+- Status: Active
+- Target: Full reverse-engineered gateway, CLI, SDK, web dashboard
+- Codebase: /home/ae/AE/03_Vault/ae-cli
+- Focus: Intentional Minimalism, custom Hono routing, citty CLI integration
