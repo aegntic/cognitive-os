@@ -1,0 +1,60 @@
+# Feeds: upstream skill repositories mined by the agent forge.
+# license: MIT  -> pattern derivation allowed with attribution (see ATTRIBUTION.md)
+#             patterns-only -> NOTHING may be copied, not even snippets; read for design ideas only
+# what_we_take describes the only sanctioned flow: upstream pattern -> original authoring -> qc.py gate.
+
+version: 1
+feeds:
+  - id: agent-native
+    repo: https://github.com/BuilderIO/agent-native.git
+    clone: /home/ae/.hermes/shared/agent-native
+    skills_dirs: ['skills', '.agents/skills']
+    license: PATTERNS-ONLY
+    license_note: 'No LICENSE file present in upstream; all rights reserved by default. Read for structure/trigger phrasing ideas only.'
+    what_we_take: 'Structural patterns only (frontmatter shape, use-when trigger phrasing, progressive-disclosure layout). Never copy prose, code, or examples.'
+    last_mined_commit: 09f8ec8e5094498eb509839ae4115100929f2aff
+
+  - id: wade-skills
+    repo: https://github.com/zapier/wade-skills.git
+    clone: /home/ae/.hermes/shared/wade-skills
+    skills_dirs: ['skills']
+    license: MIT
+    license_note: 'MIT, Copyright (c) 2026 Zapier, Inc. Pattern derivation permitted with attribution.'
+    what_we_take: 'Design patterns (multi-persona review, synthesis-of-dissent structure). Attribution recorded in ATTRIBUTION.md; no verbatim copying.'
+    last_mined_commit: b7b86e78ae2e1235bebac8668edd834b34176c19
+
+  - id: gtm-cheat-codes
+    repo: https://github.com/zapier/gtm-cheat-codes.git
+    clone: /home/ae/.hermes/shared/gtm-cheat-codes
+    skills_dirs: ['skills']
+    license: MIT
+    license_note: 'MIT, Copyright (c) Zapier, Inc. Pattern derivation permitted with attribution.'
+    what_we_take: 'Workflow patterns (evidence-first triage, ranked-memo output shape). Attribution recorded in ATTRIBUTION.md; no verbatim copying.'
+    last_mined_commit: 022a2884f40316ef22269e29fd61b8a0f0c4cb4a
+
+  - id: agent-skills
+    repo: https://github.com/zapier/agent-skills.git
+    clone: /home/ae/.hermes/shared/agent-skills
+    skills_dirs: ['skills']
+    license: MIT
+    license_note: 'MIT, Copyright (c) 2026 Zapier, Inc. Pattern derivation permitted with attribution.'
+    what_we_take: 'Workflow patterns (durable workflow lifecycle shapes). Attribution recorded in ATTRIBUTION.md; no verbatim copying.'
+    last_mined_commit: 760117609f23d5a7e3bca568de6b3ceb58f14c4b
+
+  - id: sdk
+    repo: https://github.com/zapier/sdk.git
+    clone: /home/ae/.hermes/shared/sdk
+    skills_dirs: ['skills']
+    license: MIT
+    license_note: 'MIT, Copyright (c) Zapier, Inc. Pattern derivation permitted with attribution.'
+    what_we_take: 'Integration patterns (SDK surface mapping). Attribution recorded in ATTRIBUTION.md; no verbatim copying.'
+    last_mined_commit: b459897f05cebe62456d29f47a503681144d6caf
+
+  - id: connectors
+    repo: https://github.com/zapier/connectors.git
+    clone: /home/ae/.hermes/shared/connectors
+    skills_dirs: ['apps']
+    license: PATTERNS-ONLY
+    license_note: 'Elastic License 2.0 (NOASSERTION/custom per GitHub) plus TRADEMARKS.md restrictions. Nothing may be copied or derived-for-copy.'
+    what_we_take: 'Nothing. Catalog-only feed: mine.py may list connector app names for awareness, but no pattern, prose, code, or naming is taken from this repo.'
+    last_mined_commit: e48d26f8aa5ce2908d74707c3de2962184bdde97

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Agent Forge self-evolving skill pipeline (`agent-forge/`): upstream skill feeds with license rules (`feeds.yaml`), canonical skill registry (`registry.yaml`), stdlib miner CLI (`tools/mine.py` catalog/diff/apply), QC gate (`tools/qc.py`), and idempotent Hermes bootstrap (`tools/bootstrap-hermes.sh`)
+- Three forge-authored original skills: `council-of-skills` (adversarial review panel with BUYER persona and cheapest-48h-test verdicts), `feed-digest` (weekly upstream feed review memo), `skill-steward` (skill lifecycle audit)
+- Deliberately broken QC fixture (`agent-forge/fixtures/broken-skill/`) proving the gate fails bad input
 - CodeQL workflow for automated security analysis (JavaScript/TypeScript)
 - Stale issue/PR bot (marks inactive items after 30 days, closes after 7 more)
 - Build performance tracking in CI (times full validation, warns if >30s)
