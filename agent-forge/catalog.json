@@ -1,0 +1,795 @@
+{
+  "generated_by": "agent-forge/tools/mine.py catalog",
+  "feeds": [
+    {
+      "id": "agent-native",
+      "repo": "https://github.com/BuilderIO/agent-native.git",
+      "license": "PATTERNS-ONLY",
+      "license_rule": "patterns-only-no-copy",
+      "head_commit": "09f8ec8e5094498eb509839ae4115100929f2aff",
+      "skills": [
+        {
+          "path": "skills/an/SKILL.md",
+          "name": "an",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/assets/SKILL.md",
+          "name": "assets",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/content/SKILL.md",
+          "name": "content",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/context-xray/SKILL.md",
+          "name": "context-xray",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/design-exploration/SKILL.md",
+          "name": "design-exploration",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/visual-edit/SKILL.md",
+          "name": "visual-edit",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/visual-plans/SKILL.md",
+          "name": "visual-plan",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/visual-recap/SKILL.md",
+          "name": "visual-recap",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/visualize-repo/SKILL.md",
+          "name": "visualize-repo",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/a2a-protocol/SKILL.md",
+          "name": "a2a-protocol",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/actions/SKILL.md",
+          "name": "actions",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/adding-a-feature/SKILL.md",
+          "name": "adding-a-feature",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/adding-workspace-apps/SKILL.md",
+          "name": "adding-workspace-apps",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/address-feedback/SKILL.md",
+          "name": "address-feedback",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/address-feedback-with-replies/SKILL.md",
+          "name": "address-feedback-with-replies",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/agent-native-docs/SKILL.md",
+          "name": "agent-native-docs",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/agent-native-toolkit/SKILL.md",
+          "name": "agent-native-toolkit",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/agent-page/SKILL.md",
+          "name": "agent-page",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/audit-log/SKILL.md",
+          "name": "audit-log",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/authentication/SKILL.md",
+          "name": "authentication",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/automations/SKILL.md",
+          "name": "automations",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/babysit-pr/SKILL.md",
+          "name": "babysit-pr",
+          "description_first_line": "Monitor a PR, fix feedback and CI failures until fully green for 30 min. Run with /babysit-pr <number>"
+        },
+        {
+          "path": "skills/browser-sessions/SKILL.md",
+          "name": "browser-sessions",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/capture-learnings/SKILL.md",
+          "name": "capture-learnings",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/changelog/SKILL.md",
+          "name": "changelog",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/chat-first-workbench/SKILL.md",
+          "name": "chat-first-workbench",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/client-methods/SKILL.md",
+          "name": "client-methods",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/client-side-routing/SKILL.md",
+          "name": "client-side-routing",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/composable-mini-apps/SKILL.md",
+          "name": "composable-mini-apps",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/concurrent-agents/SKILL.md",
+          "name": "concurrent-agents",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/configuration/SKILL.md",
+          "name": "configuration",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/context-awareness/SKILL.md",
+          "name": "context-awareness",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/context-xray/SKILL.md",
+          "name": "context-xray",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/create-skill/SKILL.md",
+          "name": "create-skill",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/customizing-agent-native/SKILL.md",
+          "name": "customizing-agent-native",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/data-programs/SKILL.md",
+          "name": "data-programs",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/delegate-to-agent/SKILL.md",
+          "name": "delegate-to-agent",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/delegating-work/SKILL.md",
+          "name": "delegating-work",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/extension-points/SKILL.md",
+          "name": "extension-points",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/extensions/SKILL.md",
+          "name": "extensions",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/external-agents/SKILL.md",
+          "name": "external-agents",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/feature-flags/SKILL.md",
+          "name": "feature-flags",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/fix-at-the-boundary/SKILL.md",
+          "name": "fix-at-the-boundary",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/frontend-design/SKILL.md",
+          "name": "frontend-design",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/generative-ui/SKILL.md",
+          "name": "generative-ui",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/harness-agents/SKILL.md",
+          "name": "harness-agents",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/integration-webhooks/SKILL.md",
+          "name": "integration-webhooks",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/internationalization/SKILL.md",
+          "name": "internationalization",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/multi-frontier-desktop/SKILL.md",
+          "name": "multi-frontier-desktop",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/mvp-followup/SKILL.md",
+          "name": "mvp-followup",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/native-navigation/SKILL.md",
+          "name": "native-navigation",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/new-branch/SKILL.md",
+          "name": "new-branch",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/observability/SKILL.md",
+          "name": "observability",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/onboarding/SKILL.md",
+          "name": "onboarding",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/performance/SKILL.md",
+          "name": "performance",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/portability/SKILL.md",
+          "name": "portability",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/portal/SKILL.md",
+          "name": "portal",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/qa/SKILL.md",
+          "name": "qa",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/real-time-collab/SKILL.md",
+          "name": "real-time-collab",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/real-time-sync/SKILL.md",
+          "name": "real-time-sync",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/recurring-jobs/SKILL.md",
+          "name": "recurring-jobs",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/reliable-mutations/SKILL.md",
+          "name": "reliable-mutations",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/reporting-progress/SKILL.md",
+          "name": "reporting-progress",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/review-latest-feedback/SKILL.md",
+          "name": "review-latest-feedback",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/review-prs/SKILL.md",
+          "name": "review-prs",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/secrets/SKILL.md",
+          "name": "secrets",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/security/SKILL.md",
+          "name": "security",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/self-modifying-code/SKILL.md",
+          "name": "self-modifying-code",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/server-plugins/SKILL.md",
+          "name": "server-plugins",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/shadcn-ui/SKILL.md",
+          "name": "shadcn-ui",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/sharing/SKILL.md",
+          "name": "sharing",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/ship/SKILL.md",
+          "name": "ship",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/ship-and-monitor/SKILL.md",
+          "name": "ship-and-monitor",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/ship-now/SKILL.md",
+          "name": "ship-now",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/storing-data/SKILL.md",
+          "name": "storing-data",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/tracking/SKILL.md",
+          "name": "tracking",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/turn-into-app/SKILL.md",
+          "name": "turn-into-app",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/turn-into-skill/SKILL.md",
+          "name": "turn-into-skill",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/upgrade-agent-native/SKILL.md",
+          "name": "upgrade-agent-native",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/verifying-changes/SKILL.md",
+          "name": "verifying-changes",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/visual-answer/SKILL.md",
+          "name": "visual-answer",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/voice-transcription/SKILL.md",
+          "name": "voice-transcription",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/workspace-conventions/SKILL.md",
+          "name": "workspace-conventions",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/writing-agent-instructions/SKILL.md",
+          "name": "writing-agent-instructions",
+          "description_first_line": ">-"
+        },
+        {
+          "path": "skills/writing-reference-docs/SKILL.md",
+          "name": "writing-reference-docs",
+          "description_first_line": ">-"
+        }
+      ],
+      "skill_count": 85
+    },
+    {
+      "id": "wade-skills",
+      "repo": "https://github.com/zapier/wade-skills.git",
+      "license": "MIT",
+      "license_rule": "patterns-with-attribution",
+      "head_commit": "b7b86e78ae2e1235bebac8668edd834b34176c19",
+      "skills": [
+        {
+          "path": "skills/exec-weekly-agenda-generator/SKILL.md",
+          "name": "exec-weekly-agenda-generator",
+          "description_first_line": "Synthesize the past week across meetings, chat, email, and calendar to generate a ranked list of 5-10 topics for the weekly leadership team meeting. Use when t…"
+        },
+        {
+          "path": "skills/meeting-follow-up-pipeline/SKILL.md",
+          "name": "meeting-follow-up-pipeline",
+          "description_first_line": "Turn a completed meeting into a debrief, decisions, action items, ready-to-send follow-up drafts, and proposed writebacks. Use when the user asks to debrief a …"
+        },
+        {
+          "path": "skills/war-council/SKILL.md",
+          "name": "war-council",
+          "description_first_line": "Convene a War Council of expert personas to critique ideas, stress-test decisions, and generate alternatives. Use when the user asks to run the war council, ge…"
+        }
+      ],
+      "skill_count": 3
+    },
+    {
+      "id": "gtm-cheat-codes",
+      "repo": "https://github.com/zapier/gtm-cheat-codes.git",
+      "license": "MIT",
+      "license_rule": "patterns-with-attribution",
+      "head_commit": "022a2884f40316ef22269e29fd61b8a0f0c4cb4a",
+      "skills": [
+        {
+          "path": "skills/content-ops/company-recording-clip/SKILL.md",
+          "name": "company-recording-clip",
+          "description_first_line": "Turn a company meeting or event recording into a short, approved, postable clip."
+        },
+        {
+          "path": "skills/customer-advocacy/customer-story-writer/SKILL.md",
+          "name": "customer-story-writer",
+          "description_first_line": "Draft customer stories from approved transcripts, notes, briefs, quotes, and proof points. Use for narrative customer stories, campaign stories, and metric-for…"
+        },
+        {
+          "path": "skills/customer-advocacy/find-customer-social-proof/SKILL.md",
+          "name": "find-customer-social-proof",
+          "description_first_line": "Find approved customer proof for campaigns, pages, decks, emails, and sales conversations. Use when a team needs relevant case studies, quotes, stats, slides, …"
+        },
+        {
+          "path": "skills/customer-support/support-ticket-triage/SKILL.md",
+          "name": "support-ticket-triage",
+          "description_first_line": "Triage support tickets by pulling helpdesk context, searching issue trackers and knowledge bases in parallel, classifying the issue, and giving reps a recommen…"
+        },
+        {
+          "path": "skills/gtm-ops/daily-lead-steward/SKILL.md",
+          "name": "daily-lead-steward",
+          "description_first_line": "Maintain a daily review cockpit for high-intent leads and hand-raisers."
+        },
+        {
+          "path": "skills/gtm-ops/find-lead-account-owner/SKILL.md",
+          "name": "find-lead-account-owner",
+          "description_first_line": "Resolve the right account owner for a lead using contact, company, and deal ownership evidence."
+        },
+        {
+          "path": "skills/gtm-ops/inbound-lead-audit-cx-map/SKILL.md",
+          "name": "inbound-lead-audit-cx-map",
+          "description_first_line": "Audit inbound lead handling and map the customer experience from source event to follow-up outcome."
+        },
+        {
+          "path": "skills/gtm-ops/mcp-sheet-cache-bridge/SKILL.md",
+          "name": "mcp-sheet-cache-bridge",
+          "description_first_line": "Keep Zapier Tables or another MCP-connected record store as the source of truth while Google Sheets-based tools read an event-driven cache tab."
+        },
+        {
+          "path": "skills/gtm-ops/no-lead-left-behind-lead-treatment-audit/SKILL.md",
+          "name": "no-lead-left-behind-lead-treatment-audit",
+          "description_first_line": "Audit lead handling quality across GTM systems and identify missed or low-quality follow-up."
+        },
+        {
+          "path": "skills/install-zapier/SKILL.md",
+          "name": "install-zapier",
+          "description_first_line": "Install and connect Zapier, routing to the right surface (MCP, SDK, or CLI) for what the person needs. Use when someone says \"install Zapier\", \"add Zapier\", \"c…"
+        },
+        {
+          "path": "skills/legal-operations/mcp-urgent-caller-triage/SKILL.md",
+          "name": "mcp-urgent-caller-triage",
+          "description_first_line": "Prioritize inbound client calls by reading transcripts, classifying urgency, matching callers to legal client and matter context, and preparing a callback list…"
+        },
+        {
+          "path": "skills/marketing/brand-guidelines-builder/SKILL.md",
+          "name": "brand-guidelines-builder",
+          "description_first_line": "Help non-designers evaluate work against brand guidelines and know what to fix."
+        },
+        {
+          "path": "skills/marketing/campaign-postmortem/SKILL.md",
+          "name": "campaign-postmortem",
+          "description_first_line": "Build sourced campaign retrospectives from goals, launch context, performance data, team feedback, and follow-up actions."
+        },
+        {
+          "path": "skills/marketing/html-mockup-builder/SKILL.md",
+          "name": "html-mockup-builder",
+          "description_first_line": "Build self-contained HTML mockups from campaign, product, or page briefs."
+        },
+        {
+          "path": "skills/marketing/mcp-media-inbox-triage/SKILL.md",
+          "name": "mcp-media-inbox-triage",
+          "description_first_line": "Find media, partnership, and high-intent requests buried in a shared Gmail inbox, summarize the useful ones, and route them to the right owner through Zapier M…"
+        },
+        {
+          "path": "skills/marketing/mega-campaign-generator/SKILL.md",
+          "name": "mega-campaign-generator",
+          "description_first_line": "Build review-first outbound campaign packages from source context for marketing and sales teams."
+        },
+        {
+          "path": "skills/sales-revops/cross-crm-opportunity-sync/SKILL.md",
+          "name": "cross-crm-opportunity-sync",
+          "description_first_line": "Coordinate opportunities and customer records across multiple CRMs while preserving attribution, visibility, commissions, and governance."
+        },
+        {
+          "path": "skills/sales-revops/customer-deck-builder/SKILL.md",
+          "name": "customer-deck-builder",
+          "description_first_line": "Build tailored customer-facing sales or customer success decks from approved account context and generate the presentation with Gamma through Zapier MCP."
+        },
+        {
+          "path": "skills/sales-revops/mmpe-ai-audit-account-report/SKILL.md",
+          "name": "ai-audit-account-report",
+          "description_first_line": "Turn account usage data into a concise AI audit outreach package."
+        },
+        {
+          "path": "skills/sales-revops/named-account-trigger-radar/SKILL.md",
+          "name": "named-account-trigger-radar",
+          "description_first_line": "Identify named accounts with timely buying or expansion signals and recommend next actions."
+        },
+        {
+          "path": "skills/sales-revops/sales-sequence-builder/SKILL.md",
+          "name": "sales-sequence-builder",
+          "description_first_line": "Create practical sales sequences from campaign context, account signals, and reference copy."
+        }
+      ],
+      "skill_count": 21
+    },
+    {
+      "id": "agent-skills",
+      "repo": "https://github.com/zapier/agent-skills.git",
+      "license": "MIT",
+      "license_rule": "patterns-with-attribution",
+      "head_commit": "760117609f23d5a7e3bca568de6b3ceb58f14c4b",
+      "skills": [
+        {
+          "path": "skills/workflows/create/SKILL.md",
+          "name": "workflows-create",
+          "description_first_line": "Create a durable Zapier workflow from natural language using @zapier/zapier-durable and the Zapier SDK CLI. Use when the user wants to build a Zapier workflow,…"
+        },
+        {
+          "path": "skills/workflows/doctor/SKILL.md",
+          "name": "workflows-doctor",
+          "description_first_line": "Diagnose Zapier Workflows skill and SDK CLI compatibility. Use when a workflow skill asks for a compatibility check, when SDK commands or flags are missing, wh…"
+        },
+        {
+          "path": "skills/workflows/history/SKILL.md",
+          "name": "workflows-history",
+          "description_first_line": "Show run history for a specific durable workflow using the Zapier SDK experimental Code Workflows commands. Use when the user asks for run history, execution h…"
+        },
+        {
+          "path": "skills/workflows/install/SKILL.md",
+          "name": "workflows-install",
+          "description_first_line": "Install the Zapier SDK CLI for Zapier Workflows Early Access and bootstrap the workflows companion skills. Use when the user wants to set up Zapier Workflows, …"
+        },
+        {
+          "path": "skills/workflows/list/SKILL.md",
+          "name": "workflows-list",
+          "description_first_line": "List durable workflows in the authenticated Zapier account using the Zapier SDK experimental Code Workflows commands. Use when the user asks to list my Zaps, s…"
+        },
+        {
+          "path": "skills/workflows/modify/SKILL.md",
+          "name": "workflows-modify",
+          "description_first_line": "Modify and republish an existing durable workflow using the Zapier SDK experimental Code Workflows commands. Use when the user asks to fix my Zap, update my Za…"
+        }
+      ],
+      "skill_count": 6
+    },
+    {
+      "id": "sdk",
+      "repo": "https://github.com/zapier/sdk.git",
+      "license": "MIT",
+      "license_rule": "patterns-with-attribution",
+      "head_commit": "b459897f05cebe62456d29f47a503681144d6caf",
+      "skills": [
+        {
+          "path": "skills/zapier-sdk/SKILL.md",
+          "name": "zapier-sdk",
+          "description_first_line": "|"
+        }
+      ],
+      "skill_count": 1
+    },
+    {
+      "id": "connectors",
+      "repo": "https://github.com/zapier/connectors.git",
+      "license": "PATTERNS-ONLY",
+      "license_rule": "patterns-only-no-copy",
+      "head_commit": "e48d26f8aa5ce2908d74707c3de2962184bdde97",
+      "skills": [
+        {
+          "path": "apps/algolia/SKILL.md",
+          "name": "algolia",
+          "description_first_line": "Agent-callable Algolia tools — index records, search and browse them, manage index settings, synonyms, and query rules, and read AI recommendations."
+        },
+        {
+          "path": "apps/alpaca/SKILL.md",
+          "name": "alpaca",
+          "description_first_line": "Agent-callable Alpaca trading tools — place and manage stock, crypto, and options orders, read account balances, positions, and portfolio history, look up asse…"
+        },
+        {
+          "path": "apps/clay/SKILL.md",
+          "name": "clay",
+          "description_first_line": "Agent-callable Clay tools — create, update, and find rows in Clay tables, and navigate workspaces, tables, views, and users. Use when the user mentions Clay or…"
+        },
+        {
+          "path": "apps/dataforseo/SKILL.md",
+          "name": "dataforseo",
+          "description_first_line": "Agent-callable DataForSEO tools — Google SERP results, keyword and domain analytics, backlinks, Google Maps business data, on-page audits, and AI-search visibi…"
+        },
+        {
+          "path": "apps/discord/SKILL.md",
+          "name": "discord",
+          "description_first_line": "Agent-callable Discord tools — send and manage messages, start threads and forum posts, manage channels, members, and roles, and post via webhooks. Use when th…"
+        },
+        {
+          "path": "apps/dropbox/SKILL.md",
+          "name": "dropbox",
+          "description_first_line": "Agent-callable Dropbox tools — upload, organize, find, and share files and folders. Use when the user wants to manage Dropbox content (save, move, search, shar…"
+        },
+        {
+          "path": "apps/elevenlabs/SKILL.md",
+          "name": "elevenlabs",
+          "description_first_line": "Agent-callable ElevenLabs tools — generate spoken audio from text, create sound effects and multi-speaker dialogue, re-voice and clean up audio, transcribe aud…"
+        },
+        {
+          "path": "apps/firecrawl/SKILL.md",
+          "name": "firecrawl",
+          "description_first_line": "Agent-callable Firecrawl tools — scrape a URL to clean Markdown, crawl a site, search the web, map site URLs, and extract structured data. Use when the user wa…"
+        },
+        {
+          "path": "apps/gitlab/SKILL.md",
+          "name": "gitlab",
+          "description_first_line": "Agent-callable GitLab tools — manage issues and merge requests, review diffs, commit files, run pipelines, and search. Use when the user mentions GitLab or wan…"
+        },
+        {
+          "path": "apps/google-ads/SKILL.md",
+          "name": "google-ads",
+          "description_first_line": "Agent-callable Google Ads tools — search campaigns, ad groups, and ads via GAQL, build performance reports, manage campaign status and budgets, and set up conv…"
+        },
+        {
+          "path": "apps/google-analytics/SKILL.md",
+          "name": "google-analytics",
+          "description_first_line": "Agent-callable Google Analytics 4 (GA4) tools — run analytics reports, discover the dimensions and metrics a property supports, navigate accounts and propertie…"
+        },
+        {
+          "path": "apps/google-calendar/SKILL.md",
+          "name": "google-calendar",
+          "description_first_line": "Agent-callable Google Calendar tools — create, update, move, search, and delete events, manage calendars, check free/busy availability, resolve event colors, a…"
+        },
+        {
+          "path": "apps/google-contacts/SKILL.md",
+          "name": "google-contacts",
+          "description_first_line": "Agent-callable Google Contacts tools — create, find, update, and delete contacts, manage contact groups (labels) and membership, and read auto-saved other cont…"
+        },
+        {
+          "path": "apps/google-docs/SKILL.md",
+          "name": "google-docs",
+          "description_first_line": "Agent-callable Google Docs tools — create, read, export, and find documents; edit text, formatting, images, and page style. Use when the user mentions Google D…"
+        },
+        {
+          "path": "apps/google-sheets/SKILL.md",
+          "name": "google-sheets",
+          "description_first_line": "Agent-callable Google Sheets tools — read and write spreadsheet data as rows or raw cells, manage worksheets and columns, and apply formatting, sorting, and va…"
+        },
+        {
+          "path": "apps/google-tasks/SKILL.md",
+          "name": "google-tasks",
+          "description_first_line": "Agent-callable Google Tasks tools — create, list, update, complete, move, and delete tasks and task lists. Use when the user wants to manage Google Tasks or to…"
+        },
+        {
+          "path": "apps/harvest/SKILL.md",
+          "name": "harvest",
+          "description_first_line": "Agent-callable Harvest tools — track time (log hours, start/stop timers), and manage the projects, clients, contacts, and tasks time is logged against, plus re…"
+        },
+        {
+          "path": "apps/heygen/SKILL.md",
+          "name": "heygen",
+          "description_first_line": "Agent-callable HeyGen tools — generate AI avatar videos, translate and lip-sync videos, synthesize speech, and clone or browse voices and avatars. Use when the…"
+        },
+        {
+          "path": "apps/linear/SKILL.md",
+          "name": "linear",
+          "description_first_line": "Agent-callable Linear tools — create, update, find, and comment on issues; manage projects; and resolve teams, states, labels, users, and cycles. Use when the …"
+        },
+        {
+          "path": "apps/microsoft-onedrive/SKILL.md",
+          "name": "microsoft-onedrive",
+          "description_first_line": "Agent-callable Microsoft OneDrive tools — browse, search, upload, download and convert, move, copy, and share files and folders. Use when the user mentions One…"
+        },
+        {
+          "path": "apps/microsoft-outlook/SKILL.md",
+          "name": "microsoft-outlook",
+          "description_first_line": "Agent-callable Microsoft Outlook tools — read and search mail, send/reply/forward, organize messages and folders, manage calendar events, and manage contacts. …"
+        },
+        {
+          "path": "apps/microsoft-sharepoint/SKILL.md",
+          "name": "microsoft-sharepoint",
+          "description_first_line": "Agent-callable Microsoft SharePoint tools — find sites and document libraries, browse, search, upload, move and share files, manage lists and list items, and a…"
+        },
+        {
+          "path": "apps/microsoft-todo/SKILL.md",
+          "name": "microsoft-todo",
+          "description_first_line": "Create, find, complete, and organize tasks and task lists in Microsoft To Do (Microsoft's to-do app), plus break tasks into checklist steps. Use when the user …"
+        },
+        {
+          "path": "apps/notion/SKILL.md",
+          "name": "notion",
+          "description_first_line": "Agent-callable Notion tools for searching pages and databases, reading and creating pages, querying data sources, appending content, and managing schemas. Use …"
+        },
+        {
+          "path": "apps/perplexity/SKILL.md",
+          "name": "perplexity",
+          "description_first_line": "Agent-callable Perplexity tools — ask web-grounded questions with citations, run and poll deep research, list models, and search the web. Use when the user men…"
+        },
+        {
+          "path": "apps/resend/SKILL.md",
+          "name": "resend",
+          "description_first_line": "Agent-callable Resend tools — send transactional email, manage contacts and segments, send broadcasts, read delivery status, and diagnose sending domains. Use …"
+        },
+        {
+          "path": "apps/runway/SKILL.md",
+          "name": "runway",
+          "description_first_line": "Agent-callable Runway tools — generate images and video from text or images, edit and upscale media, animate characters, generate speech and sound effects, and…"
+        },
+        {
+          "path": "apps/telegram/SKILL.md",
+          "name": "telegram",
+          "description_first_line": "Agent-callable Telegram bot tools — send messages, media, locations, contacts, and polls; edit, delete, forward, copy, and pin messages; resolve chats, members…"
+        },
+        {
+          "path": "apps/trello/SKILL.md",
+          "name": "trello",
+          "description_first_line": "Agent-callable Trello tools — create and update cards, manage boards, lists, labels, checklists, and search. Use when the user mentions Trello or wants to crea…"
+        },
+        {
+          "path": "apps/youtube/SKILL.md",
+          "name": "youtube",
+          "description_first_line": "Agent-callable YouTube tools — search and read videos, update and delete videos, manage playlists and playlist items, read and post comments, rate videos, mana…"
+        }
+      ],
+      "skill_count": 30
+    }
+  ]
+}

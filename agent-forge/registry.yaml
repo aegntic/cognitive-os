@@ -1,0 +1,61 @@
+# agent-forge registry: canonical list of forge-tracked skills.
+# status: seed | stable | quarantined | planned | external-canonical
+# Provenance records the upstream pattern that inspired each skill (patterns
+# only; bodies are always authored fresh). See ATTRIBUTION.md for the license
+# basis of each pattern source.
+
+version: 1
+skills:
+  - id: repomix-explorer
+    path: skills/repomix-explorer
+    provenance:
+      inspired_by: local
+      note: 'Pre-existing repo skill; packs codebases via repomix CLI for structure/pattern analysis. Seeded into the registry as an original.'
+    status: seed
+    created: '2026-09-01'
+    last_verified: '2026-09-01'
+
+  - id: veritas-operator
+    path: skills/veritas-operator
+    provenance:
+      inspired_by: local
+      note: 'Pre-existing repo skill; 4-tier truth-seeking research pipeline (ClawReForm-inspired) with adversarial critique and uncertainty scoring. Seeded into the registry as an original.'
+    status: seed
+    created: '2026-09-01'
+    last_verified: '2026-09-01'
+
+  - id: tab-harvest
+    path: external:aegntic/tab-harvest
+    provenance:
+      inspired_by: local
+      note: 'Video-first browser-tab knowledge harvest over CDP. Published to aegntic/tab-harvest, which stays canonical; referenced here, never duplicated into the forge.'
+    status: external-canonical
+    created: '2026-09-01'
+    last_verified: '2026-09-01'
+
+  - id: council-of-skills
+    path: agent-forge/skills/council-of-skills
+    provenance:
+      inspired_by: zapier/wade-skills
+      note: 'Adversarial council pattern (hostile personas, synthesis-of-dissent) plus BUYER persona and mandatory cheapest-48-hour-test verdict (Nate Herk roast council talk, 2026-06-25).'
+    status: seed
+    created: '2026-09-01'
+    last_verified: '2026-09-01'
+
+  - id: feed-digest
+    path: agent-forge/skills/feed-digest
+    provenance:
+      inspired_by: zapier/gtm-cheat-codes
+      note: 'Evidence-first ranked-memo pattern (campaign-postmortem, daily-lead-steward) applied to weekly feed diffs.'
+    status: seed
+    created: '2026-09-01'
+    last_verified: '2026-09-01'
+
+  - id: skill-steward
+    path: agent-forge/skills/skill-steward
+    provenance:
+      inspired_by: original
+      note: 'Original design: lifecycle audit (staleness, overlap, trigger conflicts) with retire/promote/merge/quarantine proposals.'
+    status: seed
+    created: '2026-09-01'
+    last_verified: '2026-09-01'
