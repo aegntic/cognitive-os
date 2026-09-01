@@ -127,17 +127,22 @@ def check_content(report: Report, path: Path) -> None:
         return
     rel = path.relative_to(report.skill_dir)
 
-    if EM_DASH in text:
+    # Captured third-party data (harvest transcripts, crawl dumps) is evidence,
+    # not authored prose: skip prose-lint rules for it. Verbatim quotes stay verbatim.
+    parts = rel.parts
+    is_captured_data = "examples" in parts or "fixtures" in parts or parts[:1] == ("data",)
+
+    if EM_DASH in text and not is_captured_data:
         count = text.count(EM_DASH)
         report.fail("content", f"{rel}: {count} em-dash character(s); use a comma or hyphen instead")
 
     for cousin in DASH_COUSINS:
-        if cousin in text:
+        if cousin in text and not is_captured_data:
             report.fail("content", f"{rel}: typographic dash U+{ord(cousin):04X} present; use plain '-'")
 
     lowered = text.lower()
     for word in PRAISE_WORDS:
-        if re.search(rf"\b{word}\b", lowered):
+        if re.search(rf"\b{word}\b", lowered) and not is_captured_data:
             report.fail("content", f"{rel}: praise-word '{word}'")
 
     for word in PRAISE_BOUNDARY:
@@ -155,8 +160,17 @@ def check_content(report: Report, path: Path) -> None:
 
 
 def check_hygiene(report: Report, root: Path) -> None:
+    gitignore = root / ".gitignore"
+    ignored = set()
+    try:
+        ignored = {ln.strip().rstrip("/") for ln in gitignore.read_text().splitlines()
+                   if ln.strip() and not ln.startswith("#")}
+    except OSError:
+        pass
     for path in sorted(root.rglob("*")):
-        if path.is_dir() and path.name in BANNED_DIRS:
+        # A .venv/node_modules that is gitignored is runtime state, not a
+        # shipped artifact: the gate polices what gets committed.
+        if path.is_dir() and path.name in BANNED_DIRS and path.name not in ignored:
             report.fail("hygiene", f"banned directory present: {path.relative_to(root)}")
 
     for path in iter_files(root):
