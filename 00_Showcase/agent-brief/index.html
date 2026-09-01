@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harvest Brief: 26 Videos, Distilled</title>
+<style>
+:root{
+  --ink:#0b0e14;
+  --ink2:#0e1219;
+  --panel:#11161f;
+  --panel2:#151b26;
+  --line:#1f2735;
+  --line2:#2a3446;
+  --text:#c9d3e0;
+  --dim:#79879c;
+  --faint:#525f73;
+  --coral:#ff7a6b;
+  --amber:#ffb454;
+  --green:#5ad19a;
+  --cyan:#5fd4e8;
+  --violet:#a78bfa;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  min-height:100vh;
+}
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -12%,rgba(167,139,250,.09),transparent 62%),
+    radial-gradient(ellipse 75% 48% at 50% 108%,rgba(95,212,232,.05),transparent 60%),
+    radial-gradient(ellipse 120% 80% at 50% 50%,transparent 55%,rgba(0,0,0,.5) 100%);
+  pointer-events:none;z-index:0;
+}
+.wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:0 24px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+/* hero */
+.hero{padding:96px 0 64px;text-align:center}
+.kicker{
+  display:inline-block;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--amber);border:1px solid rgba(255,180,84,.25);border-radius:999px;
+  padding:6px 16px;margin-bottom:28px;background:rgba(255,180,84,.05);
+}
+h1{
+  font-size:clamp(34px,5.5vw,58px);line-height:1.08;font-weight:800;color:#e8eef7;
+  letter-spacing:-.02em;margin-bottom:20px;
+}
+h1 .glow{color:var(--coral);text-shadow:0 0 32px rgba(255,122,107,.35)}
+.thesis{
+  max-width:760px;margin:0 auto 44px;font-size:18px;color:var(--dim);line-height:1.65;
+}
+.thesis b{color:var(--text);font-weight:600}
+.statgrid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+}
+.stat{background:var(--panel);padding:22px 12px}
+.stat .v{font-size:26px;font-weight:800;color:#e8eef7;letter-spacing:-.01em}
+.stat .l{font-size:11.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.12em;margin-top:4px}
+.stat:nth-child(1) .v{color:var(--coral)}
+.stat:nth-child(2) .v{color:var(--amber)}
+.stat:nth-child(3) .v{color:var(--green)}
+.stat:nth-child(4) .v{color:var(--cyan)}
+.stat:nth-child(5) .v{color:var(--violet)}
+.heronote{margin-top:16px;font-size:12.5px;color:var(--faint)}
+
+/* nav */
+.navbar{
+  position:sticky;top:0;z-index:50;background:rgba(11,14,20,.88);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.navinner{max-width:1080px;margin:0 auto;padding:10px 24px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.navlink{
+  font-size:13px;color:var(--dim);text-decoration:none;padding:6px 14px;border-radius:999px;
+  border:1px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap;
+}
+.navlink:hover{color:var(--text);border-color:var(--line2)}
+.navlink.c1:hover{color:var(--coral)} .navlink.c2:hover{color:var(--amber)}
+.navlink.c3:hover{color:var(--green)} .navlink.c4:hover{color:var(--cyan)}
+.navlink.c5:hover{color:var(--violet)}
+
+/* sections */
+section{padding:72px 0 8px}
+.sechead{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+.secn{font-size:13px;letter-spacing:.14em;font-weight:700}
+.t1 .secn{color:var(--coral)} .t2 .secn{color:var(--amber)} .t3 .secn{color:var(--green)}
+.t4 .secn{color:var(--cyan)} .t5 .secn{color:var(--violet)} .t6 .secn{color:var(--coral)} .t7 .secn{color:var(--amber)}
+h2{font-size:clamp(24px,3.4vw,34px);font-weight:800;color:#e8eef7;letter-spacing:-.015em}
+.vcount{font-size:13px;color:var(--faint)}
+.throughline{
+  margin:18px 0 26px;padding:16px 20px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;font-size:15.5px;color:var(--text);max-width:860px;
+}
+.throughline .tl-label{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--faint);display:block;margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 26px}
+.chip{
+  display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text);
+  text-decoration:none;background:var(--panel2);border:1px solid var(--line2);
+  border-radius:999px;padding:5px 13px;transition:border-color .2s,transform .2s;
+}
+.chip:hover{border-color:var(--faint);transform:translateY(-1px)}
+.chip .t{color:var(--amber);font-weight:600}
+.chip .id{color:var(--faint)}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);margin:30px 0 14px;font-weight:700}
+.insight{
+  display:flex;gap:14px;padding:14px 18px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;margin-bottom:10px;max-width:860px;
+}
+.insight .n{
+  flex:0 0 26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;margin-top:2px;
+}
+.t1 .insight .n{background:rgba(255,122,107,.12);color:var(--coral)}
+.t2 .insight .n{background:rgba(255,180,84,.12);color:var(--amber)}
+.t3 .insight .n{background:rgba(90,209,154,.12);color:var(--green)}
+.t4 .insight .n{background:rgba(95,212,232,.12);color:var(--cyan)}
+.t5 .insight .n{background:rgba(167,139,250,.12);color:var(--violet)}
+.t6 .insight .n{background:rgba(255,122,107,.12);color:var(--coral)}
+.t7 .insight .n{background:rgba(255,180,84,.12);color:var(--amber)}
+.insight p{font-size:15px;color:var(--text)}
+.insight a{color:var(--cyan);text-decoration:none;border-bottom:1px dotted var(--faint)}
+.insight a:hover{border-bottom-color:var(--cyan)}
+
+/* contradiction */
+.contra{
+  margin:28px 0 12px;padding:16px 20px;border-radius:12px;max-width:860px;
+  background:linear-gradient(135deg,rgba(255,180,84,.06),rgba(255,122,107,.06));
+  border:1px solid rgba(255,180,84,.28);
+}
+.contra .cl{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--amber);display:block;margin-bottom:6px;font-weight:700}
+.contra p{font-size:14.5px;color:var(--text)}
+.contra .vs{color:var(--coral);font-weight:700}
+.badge{
+  display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.06em;
+  color:var(--amber);border:1px solid rgba(255,180,84,.4);border-radius:6px;
+  padding:1px 7px;margin-left:8px;vertical-align:2px;background:rgba(255,180,84,.07);
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+
+/* steal list */
+.stealfilters{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 18px}
+.searchbox{
+  flex:1;min-width:220px;background:var(--panel);border:1px solid var(--line2);border-radius:10px;
+  padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;outline:none;
+}
+.searchbox:focus{border-color:var(--faint)}
+.searchbox::placeholder{color:var(--faint)}
+.filterbtn{
+  font-size:13px;color:var(--dim);background:var(--panel);border:1px solid var(--line2);
+  border-radius:999px;padding:8px 15px;cursor:pointer;font-family:inherit;transition:all .2s;
+}
+.filterbtn:hover{color:var(--text)}
+.filterbtn.on{color:#0b0e14;background:var(--cyan);border-color:var(--cyan);font-weight:600}
+.stealcount{font-size:13px;color:var(--faint);margin-bottom:12px}
+.stealrow{
+  border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel);
+  overflow:hidden;transition:border-color .2s;
+}
+.stealrow:hover{border-color:var(--line2)}
+.stealrow.dim{opacity:.35}
+.stealhead{
+  width:100%;display:flex;align-items:center;gap:14px;padding:13px 18px;background:none;border:none;
+  cursor:pointer;text-align:left;color:inherit;font-family:inherit;
+}
+.stealrank{
+  flex:0 0 34px;font-size:15px;font-weight:800;color:var(--faint);
+  font-variant-numeric:tabular-nums;text-align:center;
+}
+.stealname{flex:1;font-size:15px;font-weight:600;color:#dce5f0}
+.stealmeta{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--faint)}
+.pip{display:inline-flex;gap:2px;align-items:flex-end;height:12px}
+.pip i{width:3px;border-radius:1px;background:var(--faint);display:block}
+.pip i.f{background:var(--green)}
+.caret{color:var(--faint);font-size:11px;transition:transform .25s}
+.stealrow.open .caret{transform:rotate(90deg)}
+.stealbody{display:none;padding:2px 18px 16px 66px;font-size:14px;color:var(--dim)}
+.stealrow.open .stealbody{display:block}
+.stealbody .how{color:var(--text);margin-bottom:10px}
+.srcchips{display:flex;flex-wrap:wrap;gap:6px}
+
+/* video index */
+.vidtable{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:18px}
+.vidtable th{
+  text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--faint);
+  padding:10px 12px;border-bottom:1px solid var(--line2);font-weight:700;
+}
+.vidtable td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.vidtable tr:hover td{background:var(--panel)}
+.vidtable .idx{color:var(--faint);font-variant-numeric:tabular-nums}
+.vidtable .ttl a{color:var(--text);text-decoration:none}
+.vidtable .ttl a:hover{color:var(--cyan)}
+.vidtable .chn{color:var(--dim)}
+.vidtable .vw{color:var(--dim);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.vidtable .len{color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vidtable .vid{color:var(--faint);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+
+footer{padding:56px 0 80px;text-align:center;color:var(--faint);font-size:12.5px}
+footer .sep{color:var(--line2);margin:0 10px}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s ease}
+.reveal.vis{opacity:1;transform:none}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none;transition:none}
+  .chip:hover{transform:none}
+  .caret{transition:none}
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+@media (max-width:640px){
+  .hero{padding:64px 0 48px}
+  .stealbody{padding-left:18px}
+  .vidtable .chn,.vidtable .len{display:none}
+  .vidtable th:nth-child(3),.vidtable th:nth-child(5){display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Harvest Brief &middot; 2026-09-01</div>
+  <h1>26 videos.<br>One <span class="glow">playbook</span>.</h1>
+  <p class="thesis"><b>Thesis:</b> across monetization, SEO, content, and trading, the same 2026 move wins: point a persistent agent harness at one boring high-ticket problem, feed it a distilled knowledge base, sell the outcome on a retainer, and let compounding assets do the leverage.</p>
+  <div class="statgrid">
+    <div class="stat"><div class="v num" id="st-videos">26</div><div class="l">videos</div></div>
+    <div class="stat"><div class="v num" id="st-mins">1208</div><div class="l">watch minutes</div></div>
+    <div class="stat"><div class="v num">9.11M</div><div class="l">combined views</div></div>
+    <div class="stat"><div class="v num" id="st-themes">7</div><div class="l">themes</div></div>
+    <div class="stat"><div class="v num" id="st-tactics">25</div><div class="l">steal tactics</div></div>
+  </div>
+  <p class="heronote">Every insight links to its source timestamp. Revenue claims carry an <span style="color:var(--amber)">[unverified]</span> badge: we did not audit them.</p>
+</header>
+
+<nav class="navbar"><div class="navinner" id="nav"></div></nav>
+<div id="sections"></div>
+
+<section id="steal" class="reveal">
+  <div class="sechead"><span class="secn" style="color:var(--cyan)">STEAL LIST</span><h2>25 tactics, ranked by leverage &times; cheapness</h2></div>
+  <p style="color:var(--dim);margin-top:10px;max-width:760px">Ranked for a solo agent studio: highest leverage and lowest cost first. Each row names source videos and the one-line how-to.</p>
+  <div class="stealfilters">
+    <input class="searchbox" id="q" type="search" placeholder="Search tactics..." autocomplete="off">
+    <button class="filterbtn on" data-theme="all">All</button>
+    <button class="filterbtn" data-theme="0">Monetization</button>
+    <button class="filterbtn" data-theme="1">Harness Ops</button>
+    <button class="filterbtn" data-theme="2">Hermes</button>
+    <button class="filterbtn" data-theme="3">Traffic</button>
+    <button class="filterbtn" data-theme="4">Content</button>
+    <button class="filterbtn" data-theme="5">GTM</button>
+    <button class="filterbtn" data-theme="6">Trading</button>
+  </div>
+  <div class="stealcount num" id="stealcount"></div>
+  <div id="steallist"></div>
+</section>
+
+<section id="index" class="reveal">
+  <div class="sechead"><span class="secn" style="color:var(--violet)">INDEX</span><h2>All 26 source videos</h2></div>
+  <div style="overflow-x:auto">
+  <table class="vidtable" id="vidtable">
+    <thead><tr><th>#</th><th>Title</th><th>Channel</th><th style="text-align:right">Views</th><th>Length</th><th>ID</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+</section>
+
+<footer>
+  Distilled from 26 harvested analyses<span class="sep">/</span>watch time 1208 minutes (20.1 h)<span class="sep">/</span>claims marked [unverified] were not audited<span class="sep">/</span>deep links go to youtube.com
+</footer>
+
+</div>
+
+<script>
+const DATA = {
+  "stats": {"videos": 26, "watchMinutes": 1208, "views": 9112381, "themes": 7, "tactics": 25},
+  "thesis": "Across monetization, SEO, content, and trading, the same 2026 move wins: point a persistent agent harness at one boring high-ticket problem, feed it a distilled knowledge base, sell the outcome on a retainer, and let compounding assets do the leverage.",
+  "themes": [
+    {
+      "id": "monetization", "name": "Agent Monetization Playbooks", "color": "coral",
+      "videos": ["iOwKylW8c5Q", "dIiRTuLKImk", "L1lswXTpLjw", "Tj7uyTCX4-4", "wudOmpK-8Fk"],
+      "throughline": "Sell agents to boring high-ticket local businesses (roofers, paving franchises, mechanics, dental). Never sell AI; sell the outcome. The price structure repeats across channels: roughly 1,000 to 20,000 up front plus 300 to 2,000 per month retainer.",
+      "insights": [
+        {"t": "Quoting agents outsell chatbots. A VIN-decoding tire-and-brake quoter sold for 10-20K up front plus 1-2K/month, because it kills a 30-minute manual pricing chore on every call.", "src": [["L1lswXTpLjw", 1885]]},
+        {"t": "Distribution beats building: the partner model routes through marketing agencies who already own the client relationship, at 20% commission.", "src": [["L1lswXTpLjw", 2558], ["L1lswXTpLjw", 3532]]},
+        {"t": "Visual AI mockups crack cold outreach: a before/after photo mockup of the prospect's own parking lot pulled a 3% reply rate and 150K+ of quotes in two weeks for a 25-year paving franchise now up 48% jobs YoY [unverified].", "src": [["Tj7uyTCX4-4", 73], ["Tj7uyTCX4-4", 153], ["Tj7uyTCX4-4", 205]], "unverified": true}
+      ],
+      "contradiction": "The full business in 24 hours framing (iOwKylW8c5Q) versus the same ecosystem admitting 99% of agent builds is iterative testing (L1lswXTpLjw 28:22)."
+    },
+    {
+      "id": "harness-ops", "name": "Harness Ops: Claude Code as an OS", "color": "amber",
+      "videos": ["kHtOSJRUkLs", "iTY8Q449YNQ", "_9OT25ZvrWs", "bCljOfCH8Ms"],
+      "throughline": "The operators winning on cost are not prompting better; they are managing context state: clearing, deferring tool manuals, distilling wikis, and scheduling around cache windows.",
+      "insights": [
+        {"t": "Spend is rereads, not requests: one maker measured 96% of spend as re-sending conversation history; /clear between jobs resets the base to zero and costs nothing.", "src": [["kHtOSJRUkLs", 90], ["kHtOSJRUkLs", 182], ["kHtOSJRUkLs", 229]]},
+        {"t": "Sub-agents do not save tokens, they move them; Anthropic's own docs show the win is isolated clean contexts, not volume discounts.", "src": [["kHtOSJRUkLs", 615], ["iTY8Q449YNQ", 1307]]},
+        {"t": "Distill raw sources into a wiki: transcripts compressed into a compact wiki dropped token usage on queries by 95% [unverified].", "src": [["bCljOfCH8Ms", 7879]], "unverified": true}
+      ],
+      "contradiction": "Micro-optimizing every token (kHtOSJRUkLs) versus running 2.5-hour daily multi-agent content engines on the same subscriptions (bCljOfCH8Ms). Both are real strategies; they optimize for different constraints."
+    },
+    {
+      "id": "hermes", "name": "Hermes and Open Harnesses", "color": "green",
+      "videos": ["v8xFG4RmsLU", "wvYAuHfJRo0", "zwV5p1L0COI"],
+      "throughline": "Harness choice beats model choice on cost and completion. A VPS-hosted Hermes reached via Telegram or iMessage, wired to a cheap subscription, outperforms per-seat vendor agents for solo operators.",
+      "insights": [
+        {"t": "In head-to-head use, a 300/month Grok Bot subscription lost to Hermes as the better harness, while Hermes ran on a 20/month ChatGPT subscription.", "src": [["v8xFG4RmsLU", 580], ["v8xFG4RmsLU", 627]]},
+        {"t": "Composio's harness benchmarks (highest completion rate, cheapest cost per task, fastest runtime vs Claude Code) [unverified] are the argument for treating the harness as the primary stack decision.", "src": [["wvYAuHfJRo0", 176], ["wvYAuHfJRo0", 195], ["wvYAuHfJRo0", 230]], "unverified": true},
+        {"t": "One phone message can fan out a parallel hacking team (SMS spoof, tracking page, dashboard) with sub-agents that notify you on Telegram when blocked.", "src": [["zwV5p1L0COI", 0], ["zwV5p1L0COI", 1422]]}
+      ],
+      "contradiction": "No internal contradiction; the tension is vendor convenience (Grok Bot, Hyper Agent) versus open harness economics. v8xFG4RmsLU pays 300/month and still concludes Hermes wins."
+    },
+    {
+      "id": "traffic", "name": "Traffic, SEO and Microsites", "color": "cyan",
+      "videos": ["nQOGK72IHx8", "UNN6dLt5dPI", "moS5SjJFkt4", "pUu4G2lINnk"],
+      "throughline": "Compounding utility assets beat the content treadmill: tool sites and microsites built once keep earning, and agents collapsed their build cost to near zero.",
+      "insights": [
+        {"t": "A word-unscrambler site doing 55M monthly visits at an assumed 9 RPM implies ~495K/month [unverified]; the durable insight is that utility demand never expires.", "src": [["nQOGK72IHx8", 160], ["nQOGK72IHx8", 181], ["nQOGK72IHx8", 226]], "unverified": true},
+        {"t": "The takeover formula: one industry x 5 sub-niches x 20 metro cities = 100 exact-match-domain flat-HTML microsites, each with a unique phone number to attribute winners, rented per lead.", "src": [["moS5SjJFkt4", 284], ["moS5SjJFkt4", 335], ["moS5SjJFkt4", 605]]},
+        {"t": "Agents doing SEO without real data just guess; wiring an open-source SEO data MCP (10/month hosted, or 50 of pay-per-use credits that can last months) grounds them.", "src": [["UNN6dLt5dPI", 104], ["UNN6dLt5dPI", 123], ["UNN6dLt5dPI", 194]]}
+      ],
+      "contradiction": "The 1,000 microsites bravado (moS5SjJFkt4) versus the same channel's own rule: prove one, sell it, then scale. Volume is the marketing; sequence is the method."
+    },
+    {
+      "id": "content", "name": "Content Machine and Personal Brand", "color": "violet",
+      "videos": ["IS0mJP_7dZE", "sFkR34AMPw8", "DJw2yeQAPXc", "hoVC2W0p0Zg"],
+      "throughline": "Winning creators do not ask AI for ideas; they install an engine (brand files, winner analysis, reference frames) and keep human judgment on the final 10%.",
+      "insights": [
+        {"t": "Only ~1% of platform users create; the competition is far thinner than it looks, and posting compounds everything else.", "src": [["sFkR34AMPw8", 766], ["sFkR34AMPw8", 1697]]},
+        {"t": "Study winners at the thumbnail/title level, not the full video: 90% of a YouTube video's fate is cover plus title, so scrape those across the niche instead of watching everything.", "src": [["DJw2yeQAPXc", 3244]]},
+        {"t": "Brand files feed everything: five gathered docs (audience, voice, visual, offer, existing brand) turn one-off prompting into a repeatable engine; recurring jobs become skills.", "src": [["hoVC2W0p0Zg", 1861], ["hoVC2W0p0Zg", 4954]]}
+      ],
+      "contradiction": "AI content is slop (DJw2yeQAPXc 8:41) versus entire channels cloned with a free Claude plan (IS0mJP_7dZE). Resolution from DJw2yeQAPXc itself: AI drafts 90%, a creative director finishes the last 10%."
+    },
+    {
+      "id": "gtm", "name": "GTM, Apps and the Marketing Engineer", "color": "coral",
+      "videos": ["8ZC1G1ezN5o", "cgmBuqkkUQc"],
+      "throughline": "Growth now means wiring agents directly into live business data (sales calls, funnels) and instrumenting monetization before chasing users.",
+      "insights": [
+        {"t": "Monetize before you scale: 46,000 downloads with zero monetization collapsed a startup; 5-10% conversion would have been ~46K/month [unverified].", "src": [["cgmBuqkkUQc", 162], ["cgmBuqkkUQc", 177]], "unverified": true},
+        {"t": "The marketing engineer role (one person + agent systems doing a marketing team's work) is priced at 250K to 1M/year because it sits next to revenue.", "src": [["8ZC1G1ezN5o", 17], ["8ZC1G1ezN5o", 1005], ["8ZC1G1ezN5o", 1551]]},
+        {"t": "A growth repo: markdown files that update from sales calls each week and generate founder posts, videos, and landing pages from real objections.", "src": [["8ZC1G1ezN5o", 496], ["8ZC1G1ezN5o", 1133], ["8ZC1G1ezN5o", 1263]]}
+      ],
+      "contradiction": "Stop building, freeze the product (cgmBuqkkUQc 4:01) versus design-skill channels shipping polished sites weekly (pUu4G2lINnk). Different businesses; the rule binds app founders, not service studios."
+    },
+    {
+      "id": "trading", "name": "Trading-Adjacent Discipline", "color": "amber",
+      "videos": ["PL7LKUsCgIQ", "muHeyXiCn-A"],
+      "throughline": "The two trading videos are really about process discipline, and they map cleanly onto agent ops: journal everything, forward-test before going live, and size risk so one failure cannot kill you.",
+      "insights": [
+        {"t": "The Robbins Cup champion's edge is trapped-participant logic (failed moves, not predictions) plus collecting his own trade data to find time-of-day weaknesses.", "src": [["PL7LKUsCgIQ", 404], ["PL7LKUsCgIQ", 2770]]},
+        {"t": "A 22-hour Grok trading bot run on 10K produced 6 trades, 3 wins, 3 losses, +11.60 total; the honest lesson is the maker's own: 99% of backtests fall apart, so journal and forward-test for 3 months before trusting any automated system.", "src": [["muHeyXiCn-A", 1024], ["muHeyXiCn-A", 1190]]},
+        {"t": "Challenge-account math (2K drawdown vs 3K target) forces a 1.5R-at-65%-win-rate style, not hero risk.", "src": [["PL7LKUsCgIQ", 2000], ["PL7LKUsCgIQ", 2022]]}
+      ],
+      "contradiction": "A 100% monthly championship return [unverified] (PL7LKUsCgIQ 2:50) versus the agent reality of +11.60 in a day (muHeyXiCn-A). Both are honest videos; the gap between champion discretionary skill and autonomous bots is the finding."
+    }
+  ],
+  "contradictions": [
+    {"t": "Passive income framing (runs without me, ScF0pi6FSLQ; $1M/yr run entirely by AI, dIiRTuLKImk) versus operator testimony that agents need constant testing and updating (L1lswXTpLjw 28:22, 54:42) and that 67% of employees admit sabotaging AI rollouts [unverified] (dIiRTuLKImk 50:56).", "unverified": true},
+    {"t": "Volume plays (hundreds of ad variants in iOwKylW8c5Q 7:38; 1,000 microsites in moS5SjJFkt4) versus focus doctrine (prove one first in moS5SjJFkt4 11:26; one offer one niche in iOwKylW8c5Q 0:53)."},
+    {"t": "Cheap-stack ideology (Hermes on 20/month, v8xFG4RmsLU) versus the same operators paying 300/month for Grok Bot just to benchmark it (v8xFG4RmsLU 0:00)."},
+    {"t": "RPM-based utility-site income math (nQOGK72IHx8) is presented as near-passive, but the same video concedes first-page ranking is a whole industry (nQOGK72IHx8 12:27) [unverified].", "unverified": true}
+  ],
+  "tactics": [
+    {"rank": 1, "name": "Context reset ritual", "how": "/clear between jobs; audit what resends on every turn before optimizing anything else.", "leverage": 5, "cheap": 5, "theme": 1, "src": [["kHtOSJRUkLs", 182]]},
+    {"rank": 2, "name": "Wiki distillation loop", "how": "A nightly job compresses raw transcripts and notes into a wiki; query the wiki, never the raw pile.", "leverage": 5, "cheap": 5, "theme": 1, "src": [["wvYAuHfJRo0", 919], ["bCljOfCH8Ms", 7879]]},
+    {"rank": 3, "name": "Brand-file engine", "how": "Maintain audience/voice/visual/offer docs and require every generation to read them first.", "leverage": 5, "cheap": 5, "theme": 4, "src": [["8ZC1G1ezN5o", 496], ["hoVC2W0p0Zg", 1861]]},
+    {"rank": 4, "name": "Skills for recurrence", "how": "When a prompt runs twice, freeze it into a skill with docs; prompts are for one-offs.", "leverage": 4, "cheap": 5, "theme": 1, "src": [["hoVC2W0p0Zg", 4954], ["bCljOfCH8Ms", 5608]]},
+    {"rank": 5, "name": "Cheap harness stack", "how": "Run an open harness on a 20/month subscription instead of 300/month vendor seats.", "leverage": 5, "cheap": 5, "theme": 2, "src": [["v8xFG4RmsLU", 627], ["wvYAuHfJRo0", 195]]},
+    {"rank": 6, "name": "Boring-niche selector", "how": "Ask the model: which niches spend big on ads but have the worst digital quality; skip clothing and coffee.", "leverage": 4, "cheap": 5, "theme": 0, "src": [["iOwKylW8c5Q", 53]]},
+    {"rank": 7, "name": "Outcome offer formula", "how": "Offer = result + real problem + risk killed + speed + bonus + explicit next action.", "leverage": 4, "cheap": 5, "theme": 0, "src": [["iOwKylW8c5Q", 231]]},
+    {"rank": 8, "name": "Winner-signal scraping", "how": "Scrape thumbnails and titles of top performers in the niche instead of watching full videos.", "leverage": 4, "cheap": 5, "theme": 4, "src": [["DJw2yeQAPXc", 3244], ["IS0mJP_7dZE", 516]]},
+    {"rank": 9, "name": "Growth repo from calls", "how": "Pipeline sales-call transcripts into markdown insights that generate posts, videos, and landing pages weekly.", "leverage": 5, "cheap": 4, "theme": 5, "src": [["8ZC1G1ezN5o", 1133], ["DJw2yeQAPXc", 2637]]},
+    {"rank": 10, "name": "Council red-team", "how": "Spin up adversarial personas (contrarian, expansionist, first customer) to kill weak ideas before building.", "leverage": 4, "cheap": 5, "theme": 1, "src": [["iTY8Q449YNQ", 187]]},
+    {"rank": 11, "name": "Agent self-verification", "how": "Make the agent screenshot its own UI states and probe edge cases before you look.", "leverage": 4, "cheap": 5, "theme": 1, "src": [["iTY8Q449YNQ", 593], ["L1lswXTpLjw", 1702]]},
+    {"rank": 12, "name": "Sub-agent clean contexts", "how": "Fan out sub-tasks to isolated contexts and end sessions immediately after they report.", "leverage": 4, "cheap": 4, "theme": 1, "src": [["iTY8Q449YNQ", 1307], ["kHtOSJRUkLs", 615]]},
+    {"rank": 13, "name": "Microsite takeover grid", "how": "1 industry x 5 sub-niches x 20 cities; flat HTML, exact-match domains, unique phone number per site.", "leverage": 5, "cheap": 3, "theme": 3, "src": [["moS5SjJFkt4", 284], ["moS5SjJFkt4", 335]]},
+    {"rank": 14, "name": "Utility tool compounding", "how": "Ship small calculator and generator tools on easy keywords; monetize and let them sit.", "leverage": 4, "cheap": 4, "theme": 3, "src": [["nQOGK72IHx8", 782], ["nQOGK72IHx8", 1125]]},
+    {"rank": 15, "name": "Monetization first", "how": "Instrument funnel steps and turn on payments before spending a dollar on acquisition.", "leverage": 5, "cheap": 5, "theme": 5, "src": [["cgmBuqkkUQc", 320], ["cgmBuqkkUQc", 378]]},
+    {"rank": 16, "name": "Trigger-based cold email", "how": "One line referencing a real trigger event (funding, new hire, pothole photo mockup); no pitch.", "leverage": 4, "cheap": 4, "theme": 0, "src": [["wudOmpK-8Fk", 339], ["Tj7uyTCX4-4", 73]]},
+    {"rank": 17, "name": "Retainer-priced agents", "how": "Sell the build at 1-20K plus 300-2,000/month for updates, data feeds, and accuracy.", "leverage": 5, "cheap": 4, "theme": 0, "src": [["L1lswXTpLjw", 3282], ["wudOmpK-8Fk", 208]]},
+    {"rank": 18, "name": "Partner distribution", "how": "Route sales through agencies that already own the client; pay 20% commission.", "leverage": 5, "cheap": 4, "theme": 0, "src": [["L1lswXTpLjw", 2558], ["L1lswXTpLjw", 3532]]},
+    {"rank": 19, "name": "Grounded SEO data", "how": "Wire an SEO data API via MCP so the agent stops hallucinating keywords and backlinks.", "leverage": 4, "cheap": 4, "theme": 3, "src": [["UNN6dLt5dPI", 104], ["UNN6dLt5dPI", 194]]},
+    {"rank": 20, "name": "Channel-clone system", "how": "Feed 3 top videos' titles and transcripts to derive a style guide, name, description, and format you repeat.", "leverage": 3, "cheap": 5, "theme": 4, "src": [["IS0mJP_7dZE", 287], ["IS0mJP_7dZE", 765]]},
+    {"rank": 21, "name": "Template referral assets", "how": "Publish sites as remixable templates; earn referral fees when others fork and subscribe.", "leverage": 3, "cheap": 4, "theme": 3, "src": [["nQOGK72IHx8", 856]]},
+    {"rank": 22, "name": "Scheduled-cache hygiene", "how": "Run cron tasks at 45min+ intervals; cache misses reprice the whole context at 10x.", "leverage": 3, "cheap": 5, "theme": 1, "src": [["kHtOSJRUkLs", 822], ["kHtOSJRUkLs", 1026]]},
+    {"rank": 23, "name": "Forward-test journal", "how": "Before trusting any automated system, paper-trade or journal it for 3 months; expect backtests to lie.", "leverage": 4, "cheap": 5, "theme": 6, "src": [["muHeyXiCn-A", 636], ["muHeyXiCn-A", 1190]]},
+    {"rank": 24, "name": "Multi-agent parallel sessions", "how": "Run 10-15 isolated agent sessions via a control graph with deterministic checks between nodes.", "leverage": 4, "cheap": 3, "theme": 1, "src": [["_9OT25ZvrWs", 216], ["_9OT25ZvrWs", 1086]]},
+    {"rank": 25, "name": "AI-draft human-finish pipeline", "how": "Let agents draft 90%; reserve human judgment for the final 10% where taste lives.", "leverage": 4, "cheap": 4, "theme": 4, "src": [["DJw2yeQAPXc", 661]]}
+  ],
+  "videos": [
+    {"i": "HQXi4snP36I", "t": "The AI Agent Every Company is About to Build (Vercel CEO Guillermo Rauch)", "c": "Riley Brown", "v": 94171, "d": "54:22"},
+    {"i": "iOwKylW8c5Q", "t": "Zero to $13,457/Mo: My 24-Hour AI Agency Experiment", "c": "Higgsfield AI", "v": 101108, "d": "23:34", "uv": true},
+    {"i": "dIiRTuLKImk", "t": "The Hidden $1M/Year Business Model Run Entirely By AI", "c": "BRAD LEA TV", "v": 31585, "d": "82:10", "uv": true},
+    {"i": "IS0mJP_7dZE", "t": "I Cloned a $10,000/Month YouTube Channel Using Claude Code For Free", "c": "DevJesse", "v": 29700, "d": "25:11", "uv": true},
+    {"i": "v8xFG4RmsLU", "t": "Everything You Need to Know About Grok Bot (Full Grok Build)", "c": "Lead Gen Jay", "v": 21050, "d": "17:45"},
+    {"i": "ScF0pi6FSLQ", "t": "How to literally print money while you sleep with AI dropshipping", "c": "Romas Ecom", "v": 154391, "d": "25:59", "uv": true},
+    {"i": "PL7LKUsCgIQ", "t": "Trading WORLD CHAMPION Reveals the Orderflow Strategy That Won the Robbins Cup", "c": "IQCapital", "v": 874681, "d": "58:00"},
+    {"i": "L1lswXTpLjw", "t": "This ONE AI Agent Makes me $96,000/Month: Ultimate Build & Sell Guide", "c": "Zack Kirk", "v": 40445, "d": "60:38", "uv": true},
+    {"i": "nQOGK72IHx8", "t": "This Boring Website Earns $6M/Year. Here's How to Clone it (No Coding!)", "c": "Jonathan's Jam", "v": 750503, "d": "20:27", "uv": true},
+    {"i": "kHtOSJRUkLs", "t": "Paste This Into Claude Code, Never Run Out Of Tokens Again", "c": "Sharbel A.", "v": 136718, "d": "19:47"},
+    {"i": "UNN6dLt5dPI", "t": "New: your agent lands customers (open-source SEO)", "c": "The Next New Thing", "v": 50087, "d": "19:02"},
+    {"i": "sFkR34AMPw8", "t": "The Money Making Expert: The 7,11,4 Hack (Daniel Priestley)", "c": "The Diary Of A CEO", "v": 5680756, "d": "132:32", "uv": true},
+    {"i": "iTY8Q449YNQ", "t": "I asked Claude Code to make me as much money as possible", "c": "Nate Herk | AI Automation", "v": 201316, "d": "28:12"},
+    {"i": "Tj7uyTCX4-4", "t": "A little-known agent is shockingly powerful (paving franchise)", "c": "The Next New Thing", "v": 8214, "d": "23:01"},
+    {"i": "wvYAuHfJRo0", "t": "How To Build The ULTIMATE AI Second Brain for Hermes Agent", "c": "The AI Architects | Tom Crawshaw", "v": 30750, "d": "26:10"},
+    {"i": "8ZC1G1ezN5o", "t": "Marketing Engineer: The $1M Job with AI Agents", "c": "Greg Isenberg", "v": 31570, "d": "35:18", "uv": true},
+    {"i": "wudOmpK-8Fk", "t": "7 AI Businesses You Can Start This Weekend (Just Claude)", "c": "Ben Hawksworth", "v": 22994, "d": "15:15"},
+    {"i": "muHeyXiCn-A", "t": "I Gave the Grok Bot AI Trading Bot $10,000 for 22 Hours", "c": "Trading with DaviddTech", "v": 42112, "d": "21:23"},
+    {"i": "_9OT25ZvrWs", "t": "I don't prompt agents anymore (graph engineer)", "c": "AI Jason", "v": 26186, "d": "22:22"},
+    {"i": "DJw2yeQAPXc", "t": "The AI INFLUENCER EXPLAINS: AI Agents To Make Content & Build Your Brand", "c": "The Calum Johnson Show", "v": 38262, "d": "98:45", "uv": true},
+    {"i": "zwV5p1L0COI", "t": "I Built an AI Hacking Team with Hermes Agent (And YOU can too)", "c": "zSecurity", "v": 206495, "d": "29:11"},
+    {"i": "moS5SjJFkt4", "t": "How to Build 1,000 AI Microsites and Dominate an Entire Industry", "c": "Jesse Cunningham", "v": 63480, "d": "14:25"},
+    {"i": "pUu4G2lINnk", "t": "Insane Claude Design Skills You Need for $10,000 Websites", "c": "Jack Roberts", "v": 10900, "d": "22:56", "uv": true},
+    {"i": "hoVC2W0p0Zg", "t": "Claude For Social Media: The FULL Course (2.5 Hours, Free)", "c": "Grow with Alex", "v": 14457, "d": "157:12"},
+    {"i": "bCljOfCH8Ms", "t": "Build & Sell Claude Code Operating Systems (2+ Hour Course)", "c": "Nate Herk | AI Automation", "v": 426539, "d": "153:21"},
+    {"i": "cgmBuqkkUQc", "t": "How To Get 10,000 App Users In 6 Months (Full System)", "c": "Viral App Launch", "v": 23911, "d": "20:43"}
+  ]
+};
+
+/* render */
+const $ = s => document.querySelector(s);
+const yt = (id, sec) => "https://www.youtube.com/watch?v=" + id + (sec ? "&t=" + sec + "s" : "");
+const fmt = n => n.toLocaleString("en-US");
+const ts = s => { const m = Math.floor(s / 60), r = s % 60; return m + ":" + String(r).padStart(2, "0"); };
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const vmap = {}; DATA.videos.forEach(v => vmap[v.i] = v);
+const THEME_CLASS = ["t1","t2","t3","t4","t5","t6","t7"];
+
+/* stats */
+$("#st-videos").textContent = DATA.stats.videos;
+$("#st-mins").textContent = DATA.stats.watchMinutes.toLocaleString("en-US");
+$("#st-themes").textContent = DATA.stats.themes;
+$("#st-tactics").textContent = DATA.stats.tactics;
+
+/* nav */
+const nav = $("#nav");
+DATA.themes.forEach((t, i) => {
+  const a = document.createElement("a");
+  a.className = "navlink c" + (i % 5 + 1);
+  a.href = "#theme-" + t.id;
+  a.textContent = t.name.split(":")[0];
+  nav.appendChild(a);
+});
+const a2 = document.createElement("a"); a2.className = "navlink c3"; a2.href = "#steal"; a2.textContent = "Steal List"; nav.appendChild(a2);
+const a3 = document.createElement("a"); a3.className = "navlink c5"; a3.href = "#index"; a3.textContent = "Video Index"; nav.appendChild(a3);
+
+/* theme sections */
+const host = $("#sections");
+DATA.themes.forEach((t, i) => {
+  const sec = document.createElement("section");
+  sec.id = "theme-" + t.id;
+  sec.className = "reveal " + THEME_CLASS[i];
+  const chips = t.videos.map(id => {
+    const v = vmap[id];
+    return '<a class="chip" href="' + yt(id) + '" target="_blank" rel="noopener"><span class="id mono">' + id + '</span><span>' + esc(v.t.length > 46 ? v.t.slice(0, 44) + "..." : v.t) + '</span></a>';
+  }).join("");
+  const insights = t.insights.map((ins, j) => {
+    const links = ins.src.map(([id, s]) => '<a href="' + yt(id, s) + '" target="_blank" rel="noopener">' + id + " " + ts(s) + "</a>").join(" · ");
+    return '<div class="insight"><span class="n num">' + (j + 1) + '</span><p>' + esc(ins.t) + (ins.unverified ? '<span class="badge">[unverified]</span>' : "") + '<br><span style="font-size:12px;color:var(--faint)">' + links + "</span></p></div>";
+  }).join("");
+  sec.innerHTML =
+    '<div class="sechead"><span class="secn">THEME ' + (i + 1) + " · " + t.videos.length + ' VIDEOS</span><h2>' + esc(t.name) + '</h2></div>' +
+    '<div class="throughline"><span class="tl-label">Throughline</span>' + esc(t.throughline) + "</div>" +
+    '<h3>Timestamp chips</h3><div class="chips">' + chips + "</div>" +
+    "<h3>Sharpest insights</h3>" + insights +
+    '<div class="contra"><span class="cl">Contradiction</span><p>' + esc(t.contradiction) + "</p></div>";
+  host.appendChild(sec);
+});
+
+/* cross-theme contradictions */
+const csec = document.createElement("section");
+csec.id = "contradictions"; csec.className = "reveal t2";
+csec.innerHTML = '<div class="sechead"><span class="secn" style="color:var(--amber)">CROSS-CHECK</span><h2>Four contradictions worth holding</h2></div>' +
+  DATA.contradictions.map(c =>
+    '<div class="contra"><span class="cl">Tension</span><p>' + esc(c.t) + (c.unverified ? '<span class="badge">[unverified]</span>' : "") + "</p></div>"
+  ).join("");
+host.appendChild(csec);
+
+/* steal list */
+const list = $("#steallist");
+let activeTheme = "all", query = "";
+function pips(n) {
+  let h = '<span class="pip">';
+  for (let k = 1; k <= 5; k++) h += '<i class="' + (k <= n ? "f" : "") + '" style="height:' + (4 + k * 1.6) + 'px"></i>';
+  return h + "</span>";
+}
+function renderSteal() {
+  list.innerHTML = "";
+  let shown = 0;
+  DATA.tactics.forEach(t => {
+    const hay = (t.name + " " + t.how).toLowerCase();
+    const okQ = !query || hay.includes(query);
+    const okT = activeTheme === "all" || String(t.theme) === activeTheme;
+    if (!okQ || !okT) return;
+    shown++;
+    const row = document.createElement("div");
+    row.className = "stealrow";
+    const srcs = t.src.map(([id, s]) => '<a class="chip" style="padding:3px 10px;font-size:11.5px" href="' + yt(id, s) + '" target="_blank" rel="noopener"><span class="t mono">' + ts(s) + "</span> " + id + "</a>").join("");
+    row.innerHTML =
+      '<button class="stealhead" aria-expanded="false">' +
+      '<span class="stealrank">' + t.rank + '</span>' +
+      '<span class="stealname">' + esc(t.name) + "</span>" +
+      '<span class="stealmeta">L' + t.leverage + " C" + t.cheap + " " + pips(t.leverage) + '<span class="caret">&#9656;</span></span>' +
+      "</button>" +
+      '<div class="stealbody"><p class="how">' + esc(t.how) + '</p><div class="srcchips">' + srcs + "</div></div>";
+    row.querySelector(".stealhead").addEventListener("click", () => {
+      row.classList.toggle("open");
+      row.querySelector(".stealhead").setAttribute("aria-expanded", row.classList.contains("open"));
+    });
+    list.appendChild(row);
+  });
+  $("#stealcount").textContent = shown + " of " + DATA.tactics.length + " tactics shown";
+}
+$("#q").addEventListener("input", e => { query = e.target.value.trim().toLowerCase(); renderSteal(); });
+document.querySelectorAll(".filterbtn").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".filterbtn").forEach(x => x.classList.remove("on"));
+  b.classList.add("on");
+  activeTheme = b.dataset.theme;
+  renderSteal();
+}));
+renderSteal();
+
+/* video index */
+const tb = $("#vidtable tbody");
+DATA.videos.forEach((v, i) => {
+  const tr = document.createElement("tr");
+  tr.innerHTML =
+    '<td class="idx">' + String(i).padStart(2, "0") + "</td>" +
+    '<td class="ttl"><a href="' + yt(v.i) + '" target="_blank" rel="noopener">' + esc(v.t) + "</a>" + (v.uv ? '<span class="badge">[unverified]</span>' : "") + "</td>" +
+    '<td class="chn">' + esc(v.c) + "</td>" +
+    '<td class="vw">' + fmt(v.v) + "</td>" +
+    '<td class="len">' + v.d + "</td>" +
+    '<td class="vid">' + v.i + "</td>";
+  tb.appendChild(tr);
+});
+
+/* scroll reveal */
+const rm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (!rm && "IntersectionObserver" in window) {
+  const io = new IntersectionObserver(es => es.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add("vis"); io.unobserve(e.target); }
+  }), { threshold: 0.08 });
+  document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+} else {
+  document.querySelectorAll(".reveal").forEach(el => el.classList.add("vis"));
+}
+</script>
+</body>
+</html>
