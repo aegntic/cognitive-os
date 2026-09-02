@@ -58,3 +58,77 @@ feeds:
     license_note: 'Elastic License 2.0 (NOASSERTION/custom per GitHub) plus TRADEMARKS.md restrictions. Nothing may be copied or derived-for-copy.'
     what_we_take: 'Nothing. Catalog-only feed: mine.py may list connector app names for awareness, but no pattern, prose, code, or naming is taken from this repo.'
     last_mined_commit: e48d26f8aa5ce2908d74707c3de2962184bdde97
+
+  # influence-12 feeds (added 2026-09-02; absorption ledger: cldcde-private aegntic/skills/ATTRIBUTION.md)
+  - repo: blader/humanizer
+    url: https://github.com/blader/humanizer.git
+    local_clone: /home/ae/.hermes/shared/humanizer
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: e2e92e7b4b8229253ed5c8e81dc65463fdeddda5
+  - repo: poteto/plugins
+    url: https://github.com/poteto/plugins.git
+    local_clone: /home/ae/.hermes/shared/poteto-plugins
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: 74dd2291e8e37b12fd6dc49b2acbd655c6bdaf12
+  - repo: petergyang/no-ai-slop
+    url: https://github.com/petergyang/no-ai-slop.git
+    local_clone: /home/ae/.hermes/shared/no-ai-slop
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: 000650b156983f5159695b441477f4e63b25dc85
+  - repo: addyosmani/agent-skills
+    url: https://github.com/addyosmani/agent-skills.git
+    local_clone: /home/ae/.hermes/shared/addyosmani-agent-skills
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: d2c37ef6225dd8726cdd369a8030307f48592d26
+  - repo: mattpocock/skills
+    url: https://github.com/mattpocock/skills.git
+    local_clone: /home/ae/.hermes/shared/mattpocock-skills
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: 6654f6b60cd9d5be8b54c6fafe44346dabeb3b76
+  - repo: MengTo/Skills
+    url: https://github.com/MengTo/Skills.git
+    local_clone: /home/ae/.hermes/shared/Skills
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: 321c769739b823de5eb94eb3a52aa1974fe783a2
+  - repo: emilkowalski/skills
+    url: https://github.com/emilkowalski/skills.git
+    local_clone: /home/ae/.hermes/shared/emilkowalski-skills
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: d23d7f88a2e21c9e4b1418c7abe420f5c1052ba7
+  - repo: kingbootoshi/cartographer
+    url: https://github.com/kingbootoshi/cartographer.git
+    local_clone: /home/ae/.hermes/shared/cartographer
+    license: MIT (README-declared)
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: a62d16981b6aa1f5f6ef56701c49b81a16a8e30a
+  - repo: obra/superpowers
+    url: https://github.com/obra/superpowers.git
+    local_clone: /home/ae/.hermes/shared/superpowers
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: b36e0829c6d0140e93cfef2ca599b1b07d4a7797
+  - repo: garrytan/gstack
+    url: https://github.com/garrytan/gstack.git
+    local_clone: /home/ae/.hermes/shared/gstack
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: 0d1bd5616c0ef096bb7ccee336f63c60ee408618
+  - repo: pbakaus/impeccable
+    url: https://github.com/pbakaus/impeccable.git
+    local_clone: /home/ae/.hermes/shared/impeccable
+    license: Apache-2.0
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: c0f495212236129c2e92aaf7714a3a9914569d13
+  - repo: mvanhorn/last30days-skill
+    url: https://github.com/mvanhorn/last30days-skill.git
+    local_clone: /home/ae/.hermes/shared/last30days-skill
+    license: MIT
+    take: curated-absorption (de-brand, qc-gate, attribute; see cldcde-private aegntic/skills/ATTRIBUTION.md)
+    last_mined_commit: 1f378527b229ffcb00102b6440e49fa06c582443
