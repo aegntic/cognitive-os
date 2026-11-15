@@ -34,7 +34,15 @@ impl Embedder {
         if self.is_mock() {
             return Ok(mock_vec(text, self.dims));
         }
-        self.embed_ollama(text)
+        let vector = self.embed_ollama(text)?;
+        if vector.len() != self.dims || vector.iter().any(|v| !v.is_finite()) {
+            bail!(
+                "invalid embedding: expected {} finite values, got {}",
+                self.dims,
+                vector.len()
+            );
+        }
+        Ok(vector)
     }
 
     fn embed_ollama(&self, text: &str) -> Result<Vec<f32>> {
@@ -74,8 +82,12 @@ fn parse_f32_arr(v: &serde_json::Value) -> Result<Vec<f32>> {
     let arr = v.as_array().with_context(|| "embedding is not an array")?;
     Ok(arr
         .iter()
-        .map(|x| x.as_f64().unwrap_or(0.0) as f32)
-        .collect())
+        .map(|x| {
+            x.as_f64()
+                .map(|v| v as f32)
+                .context("embedding contains a non-number")
+        })
+        .collect::<Result<Vec<_>>>()?)
 }
 
 fn mock_vec(text: &str, dims: usize) -> Vec<f32> {

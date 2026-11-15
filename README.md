@@ -7,7 +7,7 @@
 
 `cognitive-os` is a 699-line *specification* — a cognitive architecture carried as prompt protocol by AI harnesses (Claude Code, Hermes, Codex, Gemini, Cursor). It defines a four-tier memory model (§3.1), a forgetting curve (§3.4), and a verification chain (§4.1). But a spec loaded into a context window stores nothing. This repo is the engine that turns §3 of the spec into running software.
 
-**Status: M0 walking skeleton is runnable.** CLI `init` / `cycle` / `search` / `health` over a fixture vault, SQLite + FTS5 hybrid search, local ollama embeddings, cycle gates, cycles ledger. The design below is the committed roadmap; M0 is the first executable increment. Every claim on this page describes either what exists (M0 CLI + docs) or what is explicitly marked *planned*.
+**Status: M0 walking skeleton is runnable.** CLI `init` / `cycle` / `search` / `health` over a fixture vault, SQLite + FTS5 hybrid search, local ollama embeddings, cycle gates, cycles ledger. The design below is the committed roadmap; M0 is the first executable increment. The principles and architecture below describe the target design; only the M0 CLI capabilities are implemented. Four-tier tables, decay/reinforcement, MCP integration, export, and a rebuild command remain planned.
 
 ## Why this exists
 
@@ -42,6 +42,8 @@ cargo build
 
 Verified 2026-08-27 against local ollama `nomic-embed-text`: first cycle 3/3/3 green; second cycle `skipped=3` (not a silent zero-import green); dead embedder URL fails at the **embed** gate, exit 1, ledger names the gate. Search returns `_meta.fused_from` from FTS5 + vector cosine.
 
+Cycles commit page and chunk changes atomically. A failed cycle rolls back those changes and records a failed ledger entry; retries reprocess changed pages. Embeddings must contain the configured number of finite numeric values. Tests use explicit mock vectors and a loopback failure-injection server, not a live model.
+
 Vectors live as BLOBs in SQLite (disk-backed, no WASM heap). sqlite-vec ANN is M1 if the corpus needs it — the ceiling that killed PGlite is already gone.
 
 ## Architecture, briefly
@@ -69,11 +71,11 @@ Full detail: [ARCHITECTURE.md](ARCHITECTURE.md). Roadmap: [MILESTONES.md](MILEST
 |---|---|---|---|
 | Storage | PGlite, in-memory heap | PGlite or Supabase Postgres | SQLite + FTS5 + vector BLOBs (disk) |
 | Silent-failure defense | none (the incident) | partial (doctor improvements) | cycle gates, hard-fail, JSONL health |
-| Four tiers as schema | no | partial | yes (§3.1 direct mapping) |
-| Forgetting curve | none | none | §3.4 decay + reinforcement |
-| Vault-canonical rebuild | no | no | yes, first-class |
+| Four tiers as schema | no | partial | planned; M0 pages/chunks/cycles only |
+| Forgetting curve | none | none | planned |
+| Vault-canonical rebuild | no | no | derived index; rebuild command planned |
 | Local embeddings | fork patch | native (ollama) | native, default |
-| Harness integration | OpenClaw/Claude-centric | broad | Hermes MCP first |
+| Harness integration | OpenClaw/Claude-centric | broad | CLI only; Hermes MCP planned |
 
 gbrain is excellent software with an active maintainer — the engine exists to execute *this* spec's memory model faithfully, not to beat gbrain on features. Where gbrain is stronger, the table says so.
 

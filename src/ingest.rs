@@ -23,10 +23,7 @@ pub fn walk_vault(root: &Path) -> Result<Vec<Discovered>> {
 }
 
 fn walk_inner(root: &Path, dir: &Path, out: &mut Vec<Discovered>) -> Result<()> {
-    let entries = match fs::read_dir(dir) {
-        Ok(e) => e,
-        Err(_) => return Ok(()),
-    };
+    let entries = fs::read_dir(dir)?;
     for ent in entries {
         let ent = ent?;
         let path = ent.path();
@@ -42,7 +39,7 @@ fn walk_inner(root: &Path, dir: &Path, out: &mut Vec<Discovered>) -> Result<()> 
         if path.extension().and_then(|s| s.to_str()) != Some("md") {
             continue;
         }
-        let body = fs::read_to_string(&path).unwrap_or_default();
+        let body = fs::read_to_string(&path)?;
         let rel = path
             .strip_prefix(root)
             .unwrap_or(&path)
