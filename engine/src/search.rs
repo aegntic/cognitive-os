@@ -10,7 +10,7 @@ use std::time::Instant;
 
 pub fn search(home: &Path, cfg: &Config, query: &str, k: usize) -> Result<Value> {
     let t0 = Instant::now();
-    let brain = Brain::open(&Config::brain_path(home, &cfg.name))?;
+    let brain = Brain::open_read_only(&Config::brain_path(home, &cfg.name))?;
     let embedder = Embedder::new(&cfg.embedder, &cfg.embedder_url, cfg.embed_dims);
 
     let mut fts_rank: HashMap<i64, usize> = HashMap::new();
@@ -20,9 +20,7 @@ pub fn search(home: &Path, cfg: &Config, query: &str, k: usize) -> Result<Value>
             .prepare("SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH ?1 LIMIT ?2")?;
         let rows = stmt.query_map(params![query, (k * 8) as i64], |r| r.get::<_, i64>(0))?;
         for (i, id) in rows.enumerate() {
-            if let Ok(id) = id {
-                fts_rank.insert(id, i);
-            }
+            fts_rank.insert(id?, i);
         }
     }
 

@@ -5,7 +5,7 @@ use serde_json::{json, Value};
 use std::path::Path;
 
 pub fn log(home: &Path, cfg: &Config) -> Result<Value> {
-    let brain = Brain::open(&Config::brain_path(home, &cfg.name))?;
+    let brain = Brain::open_read_only(&Config::brain_path(home, &cfg.name))?;
     let rows = brain.cycles()?;
     let items: Vec<Value> = rows
         .iter()

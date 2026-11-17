@@ -7,7 +7,7 @@
 
 `cognitive-os` is a 699-line _specification_ — a cognitive architecture carried as prompt protocol by AI harnesses (Claude Code, Hermes, Codex, Gemini, Cursor). It defines a four-tier memory model (§3.1), a forgetting curve (§3.4), and a verification chain (§4.1). But a spec loaded into a context window stores nothing. This repo is the engine that turns §3 of the spec into running software.
 
-**Status: M0 walking skeleton is runnable.** CLI `init` / `cycle` / `search` / `health` over a fixture vault, SQLite + FTS5 hybrid search, local ollama embeddings, cycle gates, cycles ledger. The design below is the committed roadmap; M0 is the first executable increment. The principles and architecture below describe the target design; only the M0 CLI capabilities are implemented. Four-tier tables, decay/reinforcement, MCP integration, export, and a rebuild command remain planned.
+**Status: M0 CLI plus read-only stdio MCP adapter are runnable.** CLI `init` / `cycle` / `search` / `health` over a fixture vault, SQLite + FTS5 hybrid search, local ollama embeddings, cycle gates, cycles ledger. The design below is the committed roadmap; M0 is the first executable increment. The principles and architecture below describe the target design; only the M0 CLI capabilities are implemented. The [MCP adapter](MCP.md) exposes search and latest-cycle health. Four-tier tables, decay/reinforcement, episodic MCP tools, export, and a rebuild command remain planned.
 
 ## Why this exists
 
@@ -77,7 +77,7 @@ Full detail: [ARCHITECTURE.md](ARCHITECTURE.md). Roadmap: [MILESTONES.md](MILEST
 | Forgetting curve        | none                    | none                          | planned                                |
 | Vault-canonical rebuild | no                      | no                            | derived index; rebuild command planned |
 | Local embeddings        | fork patch              | native (ollama)               | native, default                        |
-| Harness integration     | OpenClaw/Claude-centric | broad                         | CLI only; Hermes MCP planned           |
+| Harness integration     | OpenClaw/Claude-centric | broad                         | CLI + read-only stdio MCP              |
 
 gbrain is excellent software with an active maintainer — the engine exists to execute _this_ spec's memory model faithfully, not to beat gbrain on features. Where gbrain is stronger, the table says so.
 
