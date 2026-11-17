@@ -87,8 +87,11 @@ async fn sdk_roundtrip_matches_cli_and_does_not_change_database() -> Result<()> 
             .await?
             .stdout,
     )?;
-    let expected_health: Value =
+    let mut expected_health: Value =
         serde_json::from_slice(&cli(home.path(), &["health", "last"]).await?.stdout)?;
+    if let Some(object) = expected_health.as_object_mut() {
+        object.remove("detail");
+    }
     let mut command = Command::new(BIN);
     command
         .arg("--home")

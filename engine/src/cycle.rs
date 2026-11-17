@@ -271,7 +271,7 @@ pub fn ensure_green(r: &CycleReport) -> Result<()> {
 mod tests {
     use super::*;
     use crate::config::Vault;
-    use std::io::{Read, Write};
+    use crate::test_support::{accept_request, reply_json};
     use std::net::TcpListener;
 
     fn fixture() -> (tempfile::TempDir, Config) {
@@ -297,15 +297,9 @@ mod tests {
         let url = format!("http://{}", listener.local_addr().unwrap());
         let handle = std::thread::spawn(move || {
             for body in responses {
-                let (mut stream, _) = listener.accept().unwrap();
-                stream
-                    .set_read_timeout(Some(std::time::Duration::from_secs(5)))
-                    .unwrap();
-                let mut buffer = [0; 8192];
-                let received = stream.read(&mut buffer).unwrap();
-                assert!(received > 0, "test client closed before sending a request");
+                let mut stream = accept_request(&listener);
                 let body = body.to_string();
-                write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
+                reply_json(&mut stream, &body);
             }
         });
         (url, handle)
