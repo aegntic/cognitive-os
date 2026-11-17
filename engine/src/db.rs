@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use std::path::Path;
 
 pub struct Brain {
@@ -10,6 +10,11 @@ impl Brain {
     pub fn open_read_only(path: &Path) -> Result<Self> {
         let conn = Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
             .with_context(|| format!("open existing brain {}", path.display()))?;
+        conn.busy_timeout(std::time::Duration::from_secs(1))?;
+        // Opening alone may defer WAL shared-memory access until the first query.
+        // Do not use immutable=1: another process can legitimately run cycles.
+        conn.query_row("SELECT COUNT(*) FROM sqlite_schema", [], |row| row.get::<_, i64>(0))
+            .context("read brain schema; a WAL database needs accessible -wal/-shm sidecars or a writable containing directory; checkpoint an offline copy before serving it from read-only storage")?;
         Ok(Self { conn })
     }
 
@@ -160,6 +165,19 @@ impl Brain {
         Ok(())
     }
 
+    pub fn latest_cycle(&self) -> Result<Option<CycleRow>> {
+        Ok(self
+            .conn
+            .query_row(
+                "SELECT id, started, ended, vault, discovered, imported, skipped,
+                    embedded, exported, status, detail_json
+             FROM cycles ORDER BY id DESC LIMIT 1",
+                [],
+                CycleRow::from_row,
+            )
+            .optional()?)
+    }
+
     pub fn cycles(&self) -> Result<Vec<CycleRow>> {
         let mut stmt = self.conn.prepare(
             "SELECT id, started, ended, vault, discovered, imported, skipped,
@@ -167,21 +185,7 @@ impl Brain {
              FROM cycles ORDER BY id ASC",
         )?;
         let rows = stmt
-            .query_map([], |r| {
-                Ok(CycleRow {
-                    id: r.get(0)?,
-                    started: r.get(1)?,
-                    ended: r.get(2)?,
-                    vault: r.get(3)?,
-                    discovered: r.get(4)?,
-                    imported: r.get(5)?,
-                    skipped: r.get(6)?,
-                    embedded: r.get(7)?,
-                    exported: r.get(8)?,
-                    status: r.get(9)?,
-                    detail_json: r.get(10)?,
-                })
-            })?
+            .query_map([], CycleRow::from_row)?
             .collect::<Result<Vec<_>, _>>()?;
         Ok(rows)
     }
@@ -200,4 +204,63 @@ pub struct CycleRow {
     pub exported: i64,
     pub status: String,
     pub detail_json: String,
+}
+
+impl CycleRow {
+    fn from_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+        Ok(Self {
+            id: r.get(0)?,
+            started: r.get(1)?,
+            ended: r.get(2)?,
+            vault: r.get(3)?,
+            discovered: r.get(4)?,
+            imported: r.get(5)?,
+            skipped: r.get(6)?,
+            embedded: r.get(7)?,
+            exported: r.get(8)?,
+            status: r.get(9)?,
+            detail_json: r.get(10)?,
+        })
+    }
+}
+
+#[cfg(test)]
+mod readonly_tests {
+    use super::*;
+
+    #[test]
+    fn readonly_open_validates_the_schema_before_serving() {
+        let home = tempfile::tempdir().unwrap();
+        let path = home.path().join("brain.sqlite");
+        std::fs::write(&path, "not a database").unwrap();
+        let error = Brain::open_read_only(&path)
+            .err()
+            .expect("invalid database must fail");
+        assert!(error.to_string().contains("read brain schema"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn readonly_wal_reports_missing_sidecar_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+        let home = tempfile::tempdir().unwrap();
+        let path = home.path().join("brain.sqlite");
+        drop(Brain::open(&path).unwrap());
+        assert!(!home.path().join("brain.sqlite-wal").exists());
+        std::fs::set_permissions(home.path(), std::fs::Permissions::from_mode(0o500)).unwrap();
+        // Privileged/container root can bypass mode bits. Restore before any assertions.
+        let probe = home.path().join("permission-probe");
+        let bypasses_permissions = std::fs::File::create(&probe).is_ok();
+        let result = Brain::open_read_only(&path);
+        std::fs::set_permissions(home.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
+        if bypasses_permissions {
+            std::fs::remove_file(probe).unwrap();
+            eprintln!("permission-denial assertion skipped: process bypasses directory mode bits");
+            return;
+        }
+        let error = result
+            .err()
+            .expect("WAL without sidecars needs a writable directory");
+        assert!(error.to_string().contains("WAL database needs accessible"));
+    }
 }

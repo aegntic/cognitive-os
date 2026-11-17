@@ -44,6 +44,7 @@ snippets and cycle metadata. Use a dedicated home for each scope and do not
 connect a private brain to an untrusted client. Search sends the query to the
 embedder URL already configured in that home (unless using the mock embedder).
 No credentials, client configuration, or real vaults are changed by the example.
+Sanitization protects new errors; it does not rewrite historical cycle records.
 
 ## Tools and errors
 
@@ -55,11 +56,28 @@ No credentials, client configuration, or real vaults are changed by the example.
    cycle has been recorded, not that the brain is healthy. A historical green
    cycle is not a live embedder probe.
 
-Both tools open the existing SQLite database read-only. Tool failures set MCP
-`isError`; detailed diagnostics go to stderr, never the protocol stdout. Invalid
+Brain names must be a single path component, never absolute or traversal paths.
+Both tools open the existing SQLite database read-only. WAL-mode databases need
+usable `-wal`/`-shm` sidecars or a writable containing directory so SQLite can
+maintain its coordination files. Read-only SQL does not mean an entirely
+read-only filesystem. Startup probes the database and reports this prerequisite
+if access fails. Do not mark a live database immutable or copy only its main
+file while another process is writing. Search uses one consistent read snapshot;
+health reads only the newest cycle instead of materializing the full ledger. Tool failures set MCP
+`isError`; sanitized diagnostics go to stderr, never the protocol stdout. Invalid
 arguments and unknown tools are explicitly rejected rather than treated as empty
 successful results. Blocking queries run outside
-the async protocol loop and are serialized per server. The engine still scans
+the async protocol loop. There is one active search and one independent health
+lane; additional calls are rejected immediately with a retryable busy error,
+not queued. Search has a five-second budget across database work and embedding
+requests; MCP responses have a six-second deadline. Legacy embedding fallback
+is attempted only for unsupported API responses (404/405), not timeouts.
+
+Timed-out blocking workers retain their lane until they actually finish, so
+retries cannot accumulate orphan workers. System DNS resolution in the existing
+synchronous HTTP client is not cancellable; a stalled resolver can keep the
+search lane busy beyond the response deadline. Health remains independently
+available. Restart the server if a resolver never returns. The engine still scans
 all stored vectors, so this adapter does not claim large-corpus performance.
 
 ## Verification and dependency choice

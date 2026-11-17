@@ -1,42 +1,72 @@
 use crate::config::Config;
 use crate::db::Brain;
 use crate::embed::{cosine, unpacking, Embedder};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use rusqlite::params;
 use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::path::Path;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 pub fn search(home: &Path, cfg: &Config, query: &str, k: usize) -> Result<Value> {
+    search_with_timeout(home, cfg, query, k, Duration::from_secs(30))
+}
+
+fn remaining(deadline: Instant) -> Result<Duration> {
+    deadline
+        .checked_duration_since(Instant::now())
+        .filter(|d| !d.is_zero())
+        .context("memory search deadline exceeded")
+}
+
+pub fn search_with_timeout(
+    home: &Path,
+    cfg: &Config,
+    query: &str,
+    k: usize,
+    timeout: Duration,
+) -> Result<Value> {
     let t0 = Instant::now();
-    let brain = Brain::open_read_only(&Config::brain_path(home, &cfg.name))?;
-    let embedder = Embedder::new(&cfg.embedder, &cfg.embedder_url, cfg.embed_dims);
+    let deadline = t0 + timeout;
+    remaining(deadline)?;
+    // Do not retain a WAL snapshot while the configured network embedder waits.
+    let qvec = Embedder::new(&cfg.embedder, &cfg.embedder_url, cfg.embed_dims)
+        .with_timeout(remaining(deadline)?)
+        .embed(query)?;
+    remaining(deadline)?;
+    let mut brain = Brain::open_read_only(&Config::brain_path(home, &cfg.name))?;
+    brain.conn.busy_timeout(remaining(deadline)?)?;
+    brain
+        .conn
+        .progress_handler(1000, Some(move || Instant::now() >= deadline));
+    // Keep FTS IDs, vectors and final chunk reads in one WAL snapshot.
+    let snapshot = brain.conn.transaction()?;
 
     let mut fts_rank: HashMap<i64, usize> = HashMap::new();
     {
-        let mut stmt = brain
-            .conn
-            .prepare("SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH ?1 LIMIT ?2")?;
+        let mut stmt =
+            snapshot.prepare("SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH ?1 LIMIT ?2")?;
         let rows = stmt.query_map(params![query, (k * 8) as i64], |r| r.get::<_, i64>(0))?;
         for (i, id) in rows.enumerate() {
+            remaining(deadline)?;
             fts_rank.insert(id?, i);
         }
     }
 
-    let qvec = embedder.embed(query)?;
+    remaining(deadline)?;
     let mut vec_scores: Vec<(i64, f32)> = Vec::new();
     {
-        let mut stmt = brain
-            .conn
-            .prepare("SELECT id, embedding FROM chunks WHERE embedding IS NOT NULL")?;
+        let mut stmt =
+            snapshot.prepare("SELECT id, embedding FROM chunks WHERE embedding IS NOT NULL")?;
         let rows = stmt.query_map([], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, Vec<u8>>(1)?)))?;
         for row in rows {
+            remaining(deadline)?;
             let (id, blob) = row?;
             let v = unpacking(&blob);
             vec_scores.push((id, cosine(&qvec, &v)));
         }
     }
+    remaining(deadline)?;
     vec_scores.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
     let mut vec_rank: HashMap<i64, usize> = HashMap::new();
     for (i, (id, _)) in vec_scores.iter().take(k * 8).enumerate() {
@@ -56,7 +86,8 @@ pub fn search(home: &Path, cfg: &Config, query: &str, k: usize) -> Result<Value>
 
     let mut hits = Vec::new();
     for (id, score) in ranked {
-        let row: (String, String, String) = brain.conn.query_row(
+        remaining(deadline)?;
+        let row: (String, String, String) = snapshot.query_row(
             "SELECT p.path, p.title, c.content FROM chunks c JOIN pages p ON p.id = c.page_id WHERE c.id = ?1",
             params![id],
             |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
@@ -70,6 +101,7 @@ pub fn search(home: &Path, cfg: &Config, query: &str, k: usize) -> Result<Value>
         }));
     }
 
+    remaining(deadline)?;
     let ms = t0.elapsed().as_millis();
     Ok(json!({
         "hits": hits,
@@ -79,4 +111,122 @@ pub fn search(home: &Path, cfg: &Config, query: &str, k: usize) -> Result<Value>
             "fused_from": { "fts": fts_rank.len(), "vec": vec_rank.len() }
         }
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::{accept_request, reply_json};
+    use crate::{config::Vault, cycle};
+    use std::net::TcpListener;
+
+    fn fixture() -> (tempfile::TempDir, Config) {
+        let home = tempfile::tempdir().unwrap();
+        let vault = home.path().join("vault");
+        std::fs::create_dir(&vault).unwrap();
+        std::fs::write(vault.join("note.md"), "# Original\nneedle original").unwrap();
+        let cfg = Config {
+            name: "test".into(),
+            embedder: "mock:hash".into(),
+            embedder_url: String::new(),
+            embed_dims: 3,
+            vaults: vec![Vault {
+                id: "fixture".into(),
+                path: vault.to_string_lossy().into(),
+            }],
+        };
+        assert_eq!(cycle::run(home.path(), &cfg).unwrap().status, "green");
+        (home, cfg)
+    }
+
+    #[test]
+    fn embedding_does_not_pin_an_old_snapshot() {
+        let (home, mut cfg) = fixture();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let writer_cfg = cfg.clone();
+        let writer_home = home.path().to_path_buf();
+        let writer = std::thread::spawn(move || {
+            let mut stream = accept_request(&listener);
+            // Changes committed while embedding must appear in the later snapshot.
+            std::fs::write(
+                Path::new(&writer_cfg.vaults[0].path).join("note.md"),
+                "# Replacement\nneedle replacement",
+            )
+            .unwrap();
+            assert_eq!(
+                cycle::run(&writer_home, &writer_cfg).unwrap().status,
+                "green"
+            );
+            let body = r#"{"embedding":[1,0,0]}"#;
+            reply_json(&mut stream, body);
+        });
+        cfg.embedder = "ollama:test".into();
+        cfg.embedder_url = url;
+        let result = search(home.path(), &cfg, "needle", 8);
+        writer.join().unwrap();
+        let result = result.unwrap();
+        assert!(result["hits"][0]["snippet"]
+            .as_str()
+            .unwrap()
+            .contains("needle replacement"));
+        cfg.embedder = "mock:hash".into();
+        assert!(
+            search(home.path(), &cfg, "needle", 8).unwrap()["hits"][0]["snippet"]
+                .as_str()
+                .unwrap()
+                .contains("needle replacement")
+        );
+    }
+
+    #[test]
+    fn read_snapshot_retains_original_chunks_during_concurrent_cycle() {
+        let (home, cfg) = fixture();
+        let mut reader =
+            Brain::open_read_only(&Config::brain_path(home.path(), &cfg.name)).unwrap();
+        let snapshot = reader.conn.transaction().unwrap();
+        let id: i64 = snapshot
+            .query_row(
+                "SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH 'needle' LIMIT 1",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        let writer_cfg = cfg.clone();
+        let writer_home = home.path().to_path_buf();
+        std::thread::spawn(move || {
+            std::fs::write(
+                Path::new(&writer_cfg.vaults[0].path).join("note.md"),
+                "# Replacement\nneedle replacement",
+            )
+            .unwrap();
+            assert_eq!(
+                cycle::run(&writer_home, &writer_cfg).unwrap().status,
+                "green"
+            );
+        })
+        .join()
+        .unwrap();
+        let original: String = snapshot
+            .query_row("SELECT content FROM chunks WHERE id = ?1", [id], |row| {
+                row.get(0)
+            })
+            .unwrap();
+        assert!(original.contains("needle original"));
+        drop(snapshot);
+        assert!(
+            search(home.path(), &cfg, "needle", 8).unwrap()["hits"][0]["snippet"]
+                .as_str()
+                .unwrap()
+                .contains("needle replacement")
+        );
+    }
+
+    #[test]
+    fn expired_deadline_fails_without_querying() {
+        let (home, cfg) = fixture();
+        let error =
+            search_with_timeout(home.path(), &cfg, "needle", 8, Duration::ZERO).unwrap_err();
+        assert!(error.to_string().contains("deadline"));
+    }
 }

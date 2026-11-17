@@ -6,6 +6,8 @@ mod health;
 mod ingest;
 mod mcp;
 mod search;
+#[cfg(test)]
+mod test_support;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
