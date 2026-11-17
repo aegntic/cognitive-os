@@ -20,7 +20,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "markdownlint-cli2": "^0.24.1",
-    "prettier": "^3.9.5",
+    "prettier": "^3.10.1",
     "typescript": "^5.9.3",
     "vitest": "^5.0.5"
   },
