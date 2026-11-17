@@ -50,6 +50,23 @@ impl Config {
         home.join("brains").join(name).join("brain.sqlite")
     }
 
+    pub fn checked_brain_path(home: &Path, name: &str) -> Result<PathBuf> {
+        validate_brain_name(name)?;
+        let root = home.canonicalize().context("resolve selected brain home")?;
+        let mut path = root.clone();
+        for component in ["brains", name, "brain.sqlite"] {
+            path.push(component);
+            if std::fs::symlink_metadata(&path)?.file_type().is_symlink() {
+                bail!("symlinks below the selected brain home are not supported");
+            }
+        }
+        let resolved = path.canonicalize()?;
+        if !resolved.starts_with(&root) {
+            bail!("brain path escapes selected home");
+        }
+        Ok(resolved)
+    }
+
     pub fn parse_embedder(spec: &str) -> (String, u32) {
         // "ollama:nomic-embed-text" or "mock:hash"
         let model = spec.split(':').nth(1).unwrap_or("nomic-embed-text");
@@ -120,5 +137,31 @@ mod tests {
         std::fs::create_dir(&home).unwrap();
         std::fs::write(home.join("config.toml"), toml::to_string(&cfg).unwrap()).unwrap();
         assert!(Config::load(&home).is_err());
+    }
+    #[cfg(unix)]
+    #[test]
+    fn read_paths_reject_nested_symlinks_but_allow_linked_home() {
+        use std::os::unix::fs::symlink;
+        let dir = tempfile::tempdir().unwrap();
+        let home = dir.path().join("home");
+        let outside = dir.path().join("outside");
+        std::fs::create_dir_all(home.join("brains")).unwrap();
+        std::fs::create_dir_all(&outside).unwrap();
+        std::fs::write(outside.join("brain.sqlite"), "fixture").unwrap();
+        symlink(&outside, home.join("brains/default")).unwrap();
+        assert!(Config::checked_brain_path(&home, "default").is_err());
+        std::fs::remove_file(home.join("brains/default")).unwrap();
+        std::fs::create_dir(home.join("brains/default")).unwrap();
+        symlink(
+            outside.join("brain.sqlite"),
+            home.join("brains/default/brain.sqlite"),
+        )
+        .unwrap();
+        assert!(Config::checked_brain_path(&home, "default").is_err());
+        std::fs::remove_file(home.join("brains/default/brain.sqlite")).unwrap();
+        std::fs::write(home.join("brains/default/brain.sqlite"), "fixture").unwrap();
+        let linked = dir.path().join("linked-home");
+        symlink(&home, &linked).unwrap();
+        assert!(Config::checked_brain_path(&linked, "default").is_ok());
     }
 }

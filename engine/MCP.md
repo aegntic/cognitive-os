@@ -44,7 +44,9 @@ snippets and cycle metadata. Use a dedicated home for each scope and do not
 connect a private brain to an untrusted client. Search sends the query to the
 embedder URL already configured in that home (unless using the mock embedder).
 No credentials, client configuration, or real vaults are changed by the example.
-Sanitization protects new errors; it does not rewrite historical cycle records.
+Sanitization protects new errors. MCP health omits arbitrary diagnostic details,
+including old credential-bearing error strings; the stored ledger and explicit
+CLI health output are not rewritten.
 
 ## Tools and errors
 
@@ -52,17 +54,25 @@ Sanitization protects new errors; it does not rewrite historical cycle records.
    4096 bytes; `k` must be 1–100. Unknown fields are rejected. Results use the
    same search function as the CLI, including its FTS5 query syntax, hybrid
    rankings and timing metadata.
-2. `health`: no arguments. Returns the latest recorded cycle. `null` means no
+2. `health`: no arguments. Returns the latest recorded cycle summary without
+   arbitrary `detail` diagnostics. `null` means no
    cycle has been recorded, not that the brain is healthy. A historical green
    cycle is not a live embedder probe.
 
 Brain names must be a single path component, never absolute or traversal paths.
+The selected home itself may be a symlink, but links below it (brains, named
+brain or database file) are rejected, and SQLite uses no-follow for the file.
+The home must be owned and controlled by a trusted local user. This is not a
+filesystem sandbox against an adversary who can replace directories or binaries
+as that user; path checks are defense in depth, not race-proof isolation.
 Both tools open the existing SQLite database read-only. WAL-mode databases need
 usable `-wal`/`-shm` sidecars or a writable containing directory so SQLite can
 maintain its coordination files. Read-only SQL does not mean an entirely
 read-only filesystem. Startup probes the database and reports this prerequisite
 if access fails. Do not mark a live database immutable or copy only its main
-file while another process is writing. Search uses one consistent read snapshot;
+file while another process is writing. Required engine tables/columns are
+validated before serving. Search preflights the database before contacting the
+embedder, closes that connection, then opens one consistent read snapshot;
 health reads only the newest cycle instead of materializing the full ledger. Tool failures set MCP
 `isError`; sanitized diagnostics go to stderr, never the protocol stdout. Invalid
 arguments and unknown tools are explicitly rejected rather than treated as empty
@@ -72,13 +82,17 @@ lane; additional calls are rejected immediately with a retryable busy error,
 not queued. Search has a five-second budget across database work and embedding
 requests; MCP responses have a six-second deadline. Legacy embedding fallback
 is attempted only for unsupported API responses (404/405), not timeouts.
+Embedding responses are capped at 1 MiB before JSON parsing, and vector length
+is checked before numeric allocation.
 
 Timed-out blocking workers retain their lane until they actually finish, so
 retries cannot accumulate orphan workers. System DNS resolution in the existing
 synchronous HTTP client is not cancellable; a stalled resolver can keep the
 search lane busy beyond the response deadline. Health remains independently
 available. Restart the server if a resolver never returns. The engine still scans
-all stored vectors, so this adapter does not claim large-corpus performance.
+all stored vectors; in-memory ranking is not interruptible mid-sort. The
+response deadline does not kill a blocking thread, so this adapter does not
+claim hard real-time or large-corpus performance.
 
 ## Verification and dependency choice
 

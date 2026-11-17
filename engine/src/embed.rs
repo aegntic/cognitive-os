@@ -1,6 +1,9 @@
 use anyhow::{bail, Context, Result};
 use sha2::{Digest, Sha256};
+use std::io::Read;
 use std::time::{Duration, Instant};
+
+const MAX_EMBEDDING_RESPONSE_BYTES: usize = 1024 * 1024;
 
 pub struct Embedder {
     pub spec: String,
@@ -64,7 +67,7 @@ impl Embedder {
             .timeout(remaining(deadline)?)
             .send_json(body);
         let value = match response {
-            Ok(response) => response_json(response)?,
+            Ok(response) => response_json(response, deadline)?,
             // Only an unsupported endpoint permits the legacy retry. Network
             // errors and server failures must not double the timeout budget.
             Err(ureq::Error::Status(404 | 405, _)) => {
@@ -75,7 +78,7 @@ impl Embedder {
                     .timeout(remaining(deadline)?)
                     .send_json(body)
                     .map_err(safe_request_error)?;
-                response_json(response)?
+                response_json(response, deadline)?
             }
             Err(error) => return Err(safe_request_error(error)),
         };
@@ -84,9 +87,12 @@ impl Embedder {
             .and_then(|v| v.as_array())
             .and_then(|v| v.first())
         {
-            return parse_f32_arr(first);
+            return parse_f32_arr(first, self.dims);
         }
-        parse_f32_arr(value.get("embedding").unwrap_or(&serde_json::Value::Null))
+        parse_f32_arr(
+            value.get("embedding").unwrap_or(&serde_json::Value::Null),
+            self.dims,
+        )
     }
 }
 
@@ -110,22 +116,60 @@ fn safe_request_error(error: ureq::Error) -> anyhow::Error {
     }
 }
 
-fn response_json(response: ureq::Response) -> Result<serde_json::Value> {
-    response
-        .into_json()
-        .map_err(|_| anyhow::anyhow!("embedding response unreadable or invalid JSON"))
+fn response_json(response: ureq::Response, deadline: Instant) -> Result<serde_json::Value> {
+    remaining(deadline)?;
+    if response
+        .header("Content-Length")
+        .and_then(|v| v.parse::<u64>().ok())
+        .is_some_and(|length| length > MAX_EMBEDDING_RESPONSE_BYTES as u64)
+    {
+        bail!("embedding response exceeds 1 MiB limit");
+    }
+    let mut reader = response.into_reader();
+    let mut bytes = Vec::new();
+    let mut buffer = [0_u8; 8192];
+    loop {
+        remaining(deadline)?;
+        // Read one byte beyond the limit to distinguish exact-size EOF, but
+        // never retain excess data or allocate from an untrusted length header.
+        let limit = buffer
+            .len()
+            .min(MAX_EMBEDDING_RESPONSE_BYTES + 1 - bytes.len());
+        let count = reader
+            .read(&mut buffer[..limit])
+            .map_err(|_| anyhow::anyhow!("embedding response unreadable or timed out"))?;
+        remaining(deadline)?;
+        if count == 0 {
+            break;
+        }
+        if bytes.len() + count > MAX_EMBEDDING_RESPONSE_BYTES {
+            bail!("embedding response exceeds 1 MiB limit");
+        }
+        bytes.extend_from_slice(&buffer[..count]);
+    }
+    remaining(deadline)?;
+    let value = serde_json::from_slice(&bytes)
+        .map_err(|_| anyhow::anyhow!("embedding response contains invalid JSON"))?;
+    remaining(deadline)?;
+    Ok(value)
 }
 
-fn parse_f32_arr(v: &serde_json::Value) -> Result<Vec<f32>> {
+fn parse_f32_arr(v: &serde_json::Value, expected_dims: usize) -> Result<Vec<f32>> {
     let arr = v.as_array().with_context(|| "embedding is not an array")?;
-    Ok(arr
-        .iter()
+    // Validate the shape before allocating a second vector from server data.
+    if arr.len() != expected_dims {
+        bail!(
+            "invalid embedding: expected {expected_dims} values, got {}",
+            arr.len()
+        );
+    }
+    arr.iter()
         .map(|x| {
             x.as_f64()
                 .map(|v| v as f32)
                 .context("embedding contains a non-number")
         })
-        .collect::<Result<Vec<_>>>()?)
+        .collect()
 }
 
 fn mock_vec(text: &str, dims: usize) -> Vec<f32> {
@@ -307,6 +351,85 @@ mod tests {
             read_request(&mut stream);
             write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 100\r\nConnection: close\r\n\r\n{{").unwrap();
             thread::sleep(Duration::from_millis(350));
+        });
+        let start = Instant::now();
+        let result = Embedder::new("ollama:test", &url, 2)
+            .with_timeout(Duration::from_millis(100))
+            .embed("test");
+        assert!(result.is_err());
+        assert!(start.elapsed() < Duration::from_millis(300));
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn oversized_length_header_is_rejected_before_body_read() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let worker = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            read_request(&mut stream);
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                MAX_EMBEDDING_RESPONSE_BYTES + 1
+            )
+            .unwrap();
+            thread::sleep(Duration::from_millis(250));
+        });
+        let start = Instant::now();
+        let error = Embedder::new("ollama:test", &url, 2)
+            .embed("test")
+            .unwrap_err();
+        assert!(format!("{error:#}").contains("1 MiB limit"));
+        assert!(start.elapsed() < Duration::from_millis(200));
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn oversized_body_without_length_is_rejected_before_json_parse() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let worker = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            read_request(&mut stream);
+            write!(stream, "HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n").unwrap();
+            let _ = stream.write_all(&vec![b' '; MAX_EMBEDDING_RESPONSE_BYTES + 1]);
+        });
+        let error = Embedder::new("ollama:test", &url, 2)
+            .embed("test")
+            .unwrap_err();
+        assert!(format!("{error:#}").contains("1 MiB limit"));
+        worker.join().unwrap();
+    }
+
+    #[test]
+    fn wrong_dimensions_are_rejected_before_numeric_conversion() {
+        // A non-number would fail conversion if shape validation didn't run first.
+        let value = serde_json::json!(["not a number", 1, 2]);
+        let error = parse_f32_arr(&value, 2).unwrap_err();
+        assert!(format!("{error:#}").contains("expected 2 values, got 3"));
+        let oversized = serde_json::Value::Array(vec![serde_json::json!(0); 10_000]);
+        assert!(parse_f32_arr(&oversized, 2).is_err());
+    }
+
+    #[test]
+    fn slow_trickle_cannot_reset_total_body_deadline() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}", listener.local_addr().unwrap());
+        let worker = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            read_request(&mut stream);
+            write!(
+                stream,
+                "HTTP/1.1 200 OK\r\nContent-Length: 1000\r\nConnection: close\r\n\r\n"
+            )
+            .unwrap();
+            for _ in 0..12 {
+                if stream.write_all(b" ").is_err() {
+                    break;
+                }
+                thread::sleep(Duration::from_millis(30));
+            }
         });
         let start = Instant::now();
         let result = Embedder::new("ollama:test", &url, 2)

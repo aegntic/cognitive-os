@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use rusqlite::{params, Connection, OptionalExtension};
 use std::path::Path;
+use std::time::{Duration, Instant};
 
 pub struct Brain {
     pub conn: Connection,
@@ -8,13 +9,42 @@ pub struct Brain {
 
 impl Brain {
     pub fn open_read_only(path: &Path) -> Result<Self> {
-        let conn = Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
-            .with_context(|| format!("open existing brain {}", path.display()))?;
-        conn.busy_timeout(std::time::Duration::from_secs(1))?;
+        Self::open_read_only_with_timeout(path, Duration::from_secs(1))
+    }
+
+    pub fn open_read_only_with_timeout(path: &Path, timeout: Duration) -> Result<Self> {
+        let deadline = Instant::now()
+            .checked_add(timeout)
+            .context("invalid database deadline")?;
+        let remaining = || {
+            deadline
+                .checked_duration_since(Instant::now())
+                .filter(|left| !left.is_zero())
+                .context("read-only brain deadline exceeded")
+        };
+        remaining()?;
+        let conn = Connection::open_with_flags(
+            path,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NOFOLLOW,
+        )
+        .with_context(|| format!("open existing brain {}", path.display()))?;
+        conn.busy_timeout(remaining()?)?;
+        conn.progress_handler(1000, Some(move || Instant::now() >= deadline));
         // Opening alone may defer WAL shared-memory access until the first query.
         // Do not use immutable=1: another process can legitimately run cycles.
         conn.query_row("SELECT COUNT(*) FROM sqlite_schema", [], |row| row.get::<_, i64>(0))
             .context("read brain schema; a WAL database needs accessible -wal/-shm sidecars or a writable containing directory; checkpoint an offline copy before serving it from read-only storage")?;
+        for query in [
+            "SELECT id, path, source_id, title, mtime, hash, confidence, archived, first_seen, last_access FROM pages LIMIT 0",
+            "SELECT id, page_id, ord, content, hash, embedding FROM chunks LIMIT 0",
+            "SELECT rowid, content FROM chunks_fts LIMIT 0",
+            "SELECT id, started, ended, vault, discovered, imported, skipped, embedded, exported, status, detail_json FROM cycles LIMIT 0",
+        ] {
+            conn.busy_timeout(remaining()?)?;
+            conn.prepare(query).context("existing database is not an initialized Cognitive OS brain")?;
+        }
+        remaining()?;
+        conn.progress_handler(0, None::<fn() -> bool>);
         Ok(Self { conn })
     }
 
@@ -165,6 +195,20 @@ impl Brain {
         Ok(())
     }
 
+    pub fn latest_cycle_summary(&self) -> Result<Option<CycleRow>> {
+        // Do not even materialize historical free-form diagnostics for MCP.
+        Ok(self
+            .conn
+            .query_row(
+                "SELECT id, started, ended, vault, discovered, imported, skipped,
+                    embedded, exported, status, '{}' AS detail_json
+             FROM cycles ORDER BY id DESC LIMIT 1",
+                [],
+                CycleRow::from_row,
+            )
+            .optional()?)
+    }
+
     pub fn latest_cycle(&self) -> Result<Option<CycleRow>> {
         Ok(self
             .conn
@@ -237,6 +281,45 @@ mod readonly_tests {
             .err()
             .expect("invalid database must fail");
         assert!(error.to_string().contains("read brain schema"));
+    }
+
+    #[test]
+    fn readonly_open_rejects_unrelated_and_incomplete_engine_schemas() {
+        let home = tempfile::tempdir().unwrap();
+        let path = home.path().join("unrelated.sqlite");
+        let unrelated = Connection::open(&path).unwrap();
+        unrelated
+            .execute("CREATE TABLE unrelated (id INTEGER)", [])
+            .unwrap();
+        assert!(Brain::open_read_only(&path)
+            .err()
+            .unwrap()
+            .to_string()
+            .contains("initialized Cognitive OS brain"));
+        let path = home.path().join("incomplete.sqlite");
+        let brain = Brain::open(&path).unwrap();
+        brain
+            .conn
+            .execute("ALTER TABLE cycles DROP COLUMN detail_json", [])
+            .unwrap();
+        assert!(Brain::open_read_only(&path).is_err());
+    }
+
+    #[test]
+    fn readonly_schema_probe_obeys_remaining_busy_budget() {
+        let home = tempfile::tempdir().unwrap();
+        let path = home.path().join("brain.sqlite");
+        let writer = Brain::open(&path).unwrap();
+        writer
+            .conn
+            .execute_batch("PRAGMA journal_mode=DELETE; BEGIN EXCLUSIVE;")
+            .unwrap();
+        let start = Instant::now();
+        let result = Brain::open_read_only_with_timeout(&path, Duration::from_millis(50));
+        let elapsed = start.elapsed();
+        writer.conn.execute_batch("ROLLBACK;").unwrap();
+        assert!(result.is_err());
+        assert!(elapsed < Duration::from_millis(500), "elapsed: {elapsed:?}");
     }
 
     #[cfg(unix)]

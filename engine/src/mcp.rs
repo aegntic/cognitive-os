@@ -63,7 +63,7 @@ impl MemoryServer {
         self.execute(
             self.health_slot.clone(),
             Duration::from_secs(6),
-            move || health::last(&home, &cfg),
+            move || health::last_for_mcp(&home, &cfg),
         )
         .await
     }
@@ -102,22 +102,38 @@ impl MemoryServer {
             Ok(value) => Ok(CallToolResult::success(vec![ContentBlock::text(
                 value.to_string(),
             )])),
-            Err(_) => {
-                eprintln!(
-                    "memory tool failed; detailed error suppressed to protect configuration data"
-                );
-                Ok(CallToolResult::error(vec![ContentBlock::text(
-                    "Memory query failed. Check the server diagnostics and configured embedder.",
-                )]))
+            Err(error) => {
+                let category = safe_category(&error);
+                eprintln!("memory {category} operation failed; sensitive details suppressed");
+                Ok(CallToolResult::error(vec![ContentBlock::text(format!(
+                    "Memory {category} operation failed. Check local configuration."
+                ))]))
             }
         }
+    }
+}
+
+fn safe_category(error: &anyhow::Error) -> &'static str {
+    if error.chain().any(|e| e.is::<rusqlite::Error>()) {
+        return "database/query";
+    }
+    if error.chain().any(|e| e.is::<std::io::Error>()) {
+        return "filesystem";
+    }
+    let summary = error.to_string();
+    if summary.contains("deadline") {
+        "deadline"
+    } else if summary.contains("embedding") {
+        "embedding"
+    } else {
+        "query"
     }
 }
 
 pub fn serve(home: PathBuf) -> Result<()> {
     let config = Config::load(&home)?;
     // Fail closed: serving never initializes or migrates an absent database.
-    Brain::open_read_only(&Config::brain_path(&home, &config.name))?;
+    Brain::open_read_only(&Config::checked_brain_path(&home, &config.name)?)?;
     let server = MemoryServer {
         home,
         config,

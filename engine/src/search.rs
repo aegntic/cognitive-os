@@ -29,12 +29,19 @@ pub fn search_with_timeout(
     let t0 = Instant::now();
     let deadline = t0 + timeout;
     remaining(deadline)?;
+    let brain_path = Config::checked_brain_path(home, &cfg.name)?;
+    // Reject absent/unrelated databases before sending a query to any embedder.
+    // Drop the preflight connection so network waits cannot retain a WAL snapshot.
+    drop(Brain::open_read_only_with_timeout(
+        &brain_path,
+        remaining(deadline)?,
+    )?);
     // Do not retain a WAL snapshot while the configured network embedder waits.
     let qvec = Embedder::new(&cfg.embedder, &cfg.embedder_url, cfg.embed_dims)
         .with_timeout(remaining(deadline)?)
         .embed(query)?;
     remaining(deadline)?;
-    let mut brain = Brain::open_read_only(&Config::brain_path(home, &cfg.name))?;
+    let mut brain = Brain::open_read_only_with_timeout(&brain_path, remaining(deadline)?)?;
     brain.conn.busy_timeout(remaining(deadline)?)?;
     brain
         .conn
@@ -219,6 +226,27 @@ mod tests {
                 .as_str()
                 .unwrap()
                 .contains("needle replacement")
+        );
+    }
+
+    #[test]
+    fn absent_database_does_not_contact_remote_embedder() {
+        let (home, mut cfg) = fixture();
+        std::fs::remove_file(Config::brain_path(home.path(), &cfg.name)).unwrap();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        listener.set_nonblocking(true).unwrap();
+        cfg.embedder = "ollama:test".into();
+        cfg.embedder_url = format!("http://{}", listener.local_addr().unwrap());
+        assert!(search_with_timeout(
+            home.path(),
+            &cfg,
+            "private query",
+            8,
+            Duration::from_millis(100)
+        )
+        .is_err());
+        assert!(
+            matches!(listener.accept(), Err(error) if error.kind() == std::io::ErrorKind::WouldBlock)
         );
     }
 
