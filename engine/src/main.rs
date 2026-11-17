@@ -4,6 +4,7 @@ mod db;
 mod embed;
 mod health;
 mod ingest;
+mod mcp;
 mod search;
 
 use anyhow::Result;
@@ -26,6 +27,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Cmd {
+    /// Serve read-only memory tools to an MCP client over stdin/stdout.
+    Serve,
     Init {
         #[arg(long)]
         vaults: Vec<PathBuf>,
@@ -71,8 +74,15 @@ fn main() -> ExitCode {
 
 fn run() -> Result<ExitCode> {
     let cli = Cli::parse();
+    if matches!(cli.cmd, Cmd::Serve) && cli.home.is_none() {
+        anyhow::bail!("serve requires --home PATH to select the brain shared with the MCP client");
+    }
     let home = cli.home.unwrap_or_else(Config::default_home);
     match cli.cmd {
+        Cmd::Serve => {
+            mcp::serve(home)?;
+            Ok(ExitCode::SUCCESS)
+        }
         Cmd::Init {
             vaults,
             embedder,

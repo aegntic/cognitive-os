@@ -15,8 +15,9 @@
 
 The executable memory tier now lives in [engine/](engine/) in this repository,
 alongside the specification and harness adapters. Its original Git history and
-MIT licence are preserved. The engine is an M0 Rust CLI, not an MCP server or a
-complete implementation of every specification feature.
+MIT licence are preserved. The engine provides an M0 Rust CLI and a read-only
+[stdio MCP adapter](engine/MCP.md), not a complete implementation of every
+specification feature.
 
 From the repository root:
 
