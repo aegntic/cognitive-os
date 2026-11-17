@@ -1,0 +1,6 @@
+/target
+**/*.rs.bk
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.cos-home/

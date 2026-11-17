@@ -1,0 +1,25 @@
+[package]
+name = "cos-engine"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Executable memory tier of the Cognitive OS spec — vault-canonical, SQLite, four-tier memory, verification gates."
+repository = "https://github.com/aegntic/cognitive-os-engine"
+default-run = "cos-engine"
+
+[[bin]]
+name = "cos-engine"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+toml = "0.8"
+ureq = { version = "2", features = ["json"] }
+
+[dev-dependencies]
+tempfile = "3"
