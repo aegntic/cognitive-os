@@ -5,7 +5,7 @@
 
 ## What this is
 
-`cognitive-os` is a 699-line *specification* — a cognitive architecture carried as prompt protocol by AI harnesses (Claude Code, Hermes, Codex, Gemini, Cursor). It defines a four-tier memory model (§3.1), a forgetting curve (§3.4), and a verification chain (§4.1). But a spec loaded into a context window stores nothing. This repo is the engine that turns §3 of the spec into running software.
+`cognitive-os` is a 699-line _specification_ — a cognitive architecture carried as prompt protocol by AI harnesses (Claude Code, Hermes, Codex, Gemini, Cursor). It defines a four-tier memory model (§3.1), a forgetting curve (§3.4), and a verification chain (§4.1). But a spec loaded into a context window stores nothing. This repo is the engine that turns §3 of the spec into running software.
 
 **Status: M0 walking skeleton is runnable.** CLI `init` / `cycle` / `search` / `health` over a fixture vault, SQLite + FTS5 hybrid search, local ollama embeddings, cycle gates, cycles ledger. The design below is the committed roadmap; M0 is the first executable increment. The principles and architecture below describe the target design; only the M0 CLI capabilities are implemented. Four-tier tables, decay/reinforcement, MCP integration, export, and a rebuild command remain planned.
 
@@ -31,6 +31,8 @@ The engine is designed against all three.
 8. **Cross-project isolation.** Instincts and indexes are scoped per project; no leakage between brains (§3.3).
 
 ## M0 — what you can run today
+
+Run these commands from `engine/` (`cd engine` from the repository root).
 
 ```bash
 cargo build
@@ -67,18 +69,19 @@ Full detail: [ARCHITECTURE.md](ARCHITECTURE.md). Roadmap: [MILESTONES.md](MILEST
 
 ## Comparison (honest, as of the incident)
 
-| Capability | gbrain 0.18 (incident) | gbrain 0.46 (current) | this engine (M0) |
-|---|---|---|---|
-| Storage | PGlite, in-memory heap | PGlite or Supabase Postgres | SQLite + FTS5 + vector BLOBs (disk) |
-| Silent-failure defense | none (the incident) | partial (doctor improvements) | cycle gates, hard-fail, JSONL health |
-| Four tiers as schema | no | partial | planned; M0 pages/chunks/cycles only |
-| Forgetting curve | none | none | planned |
-| Vault-canonical rebuild | no | no | derived index; rebuild command planned |
-| Local embeddings | fork patch | native (ollama) | native, default |
-| Harness integration | OpenClaw/Claude-centric | broad | CLI only; Hermes MCP planned |
+| Capability              | gbrain 0.18 (incident)  | gbrain 0.46 (current)         | this engine (M0)                       |
+| ----------------------- | ----------------------- | ----------------------------- | -------------------------------------- |
+| Storage                 | PGlite, in-memory heap  | PGlite or Supabase Postgres   | SQLite + FTS5 + vector BLOBs (disk)    |
+| Silent-failure defense  | none (the incident)     | partial (doctor improvements) | cycle gates, hard-fail, JSONL health   |
+| Four tiers as schema    | no                      | partial                       | planned; M0 pages/chunks/cycles only   |
+| Forgetting curve        | none                    | none                          | planned                                |
+| Vault-canonical rebuild | no                      | no                            | derived index; rebuild command planned |
+| Local embeddings        | fork patch              | native (ollama)               | native, default                        |
+| Harness integration     | OpenClaw/Claude-centric | broad                         | CLI only; Hermes MCP planned           |
 
-gbrain is excellent software with an active maintainer — the engine exists to execute *this* spec's memory model faithfully, not to beat gbrain on features. Where gbrain is stronger, the table says so.
+gbrain is excellent software with an active maintainer — the engine exists to execute _this_ spec's memory model faithfully, not to beat gbrain on features. Where gbrain is stronger, the table says so.
 
 ## License
 
-MIT, matching the spec repo.
+MIT. See [LICENSE](LICENSE). The parent Cognitive OS specification has a separate
+proprietary licence; neither component is relicensed by this consolidation.

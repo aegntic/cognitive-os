@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "Executable memory tier of the Cognitive OS spec — vault-canonical, SQLite, four-tier memory, verification gates."
-repository = "https://github.com/aegntic/cognitive-os-engine"
+repository = "https://github.com/aegntic/cognitive-os"
 default-run = "cos-engine"
 
 [[bin]]

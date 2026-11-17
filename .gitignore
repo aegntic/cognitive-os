@@ -69,6 +69,16 @@ brik-pro/.env
 brik-pro/.env.*
 brik-pro/*.log
 
+
+# Executable memory engine; its own ignore file excludes state and target/
+!engine/
+!engine/**
+engine/target/
+engine/**/*.sqlite
+engine/**/*.sqlite-wal
+engine/**/*.sqlite-shm
+engine/.cos-home/
+
 # Secrets (never commit, anywhere in tree)
 .dev.vars
 .dev.vars.*

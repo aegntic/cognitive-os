@@ -1,0 +1,36 @@
+name: Memory Engine
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check formatting
+        run: cargo fmt --check
+      - name: Type check
+        run: cargo check --locked
+      - name: Lint
+        run: cargo clippy --locked --all-targets
+      - name: Test
+        run: cargo test --locked
+      - name: Build
+        run: cargo build --locked
+      - name: Smoke test fixture vault
+        run: |
+          COS_HOME=$(mktemp -d)
+          ./target/debug/cos-engine --home "$COS_HOME" init --vaults fixtures/vault --embedder mock:hash
+          ./target/debug/cos-engine --home "$COS_HOME" cycle --json
+          ./target/debug/cos-engine --home "$COS_HOME" search "silent failure" --json

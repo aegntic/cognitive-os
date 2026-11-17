@@ -302,7 +302,8 @@ mod tests {
                     .set_read_timeout(Some(std::time::Duration::from_secs(5)))
                     .unwrap();
                 let mut buffer = [0; 8192];
-                stream.read(&mut buffer).unwrap();
+                let received = stream.read(&mut buffer).unwrap();
+                assert!(received > 0, "test client closed before sending a request");
                 let body = body.to_string();
                 write!(stream, "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}", body.len(), body).unwrap();
             }
