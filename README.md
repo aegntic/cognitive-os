@@ -11,6 +11,29 @@
 
 ---
 
+## Memory engine
+
+The executable memory tier now lives in [engine/](engine/) in this repository,
+alongside the specification and harness adapters. Its original Git history and
+MIT licence are preserved. The engine is an M0 Rust CLI, not an MCP server or a
+complete implementation of every specification feature.
+
+From the repository root:
+
+```bash
+cargo test --locked --manifest-path engine/Cargo.toml
+cargo build --locked --manifest-path engine/Cargo.toml
+COS_HOME=$(mktemp -d)
+engine/target/debug/cos-engine --home "$COS_HOME" init --vaults engine/fixtures/vault --embedder mock:hash
+engine/target/debug/cos-engine --home "$COS_HOME" cycle --json
+engine/target/debug/cos-engine --home "$COS_HOME" search "silent failure" --json
+```
+
+`mock:hash` is a deterministic smoke-test embedder, not a semantic model. For
+local Ollama embeddings and the roadmap, see the [engine guide](engine/README.md).
+The imported memory-cycle fix rolls back incomplete writes and rejects malformed
+embeddings; it does not automatically connect existing harnesses to the engine.
+
 ## Table of Contents
 
 1. [Why Cognitive OS?](#why-cognitive-os)
@@ -265,7 +288,9 @@ See [.github/SECURITY.md](.github/SECURITY.md) for vulnerability reporting instr
 
 ## License
 
-Proprietary. All rights reserved. See [LICENSE](LICENSE) for details.
+The specification remains proprietary. See [LICENSE](LICENSE) for details.
+The executable memory engine under `engine/` retains its separate
+[MIT licence](engine/LICENSE). Consolidation does not relicense either component.
 
 ---
 
