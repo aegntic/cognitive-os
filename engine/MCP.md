@@ -21,6 +21,35 @@ The last command waits for an MCP client on stdin/stdout. It is not an interacti
 shell. `mock:hash` is for deterministic testing, not useful semantic embeddings.
 For a real brain, initialize and cycle it separately with the intended embedder.
 
+## Try it with Codex using only repository fixtures
+
+From the repository root, with the Codex CLI on your PATH:
+
+```bash
+cargo build --locked --manifest-path engine/Cargo.toml --target-dir engine/target
+session="$(bash engine/scripts/codex-fixture.sh)"
+```
+
+The script creates an isolated Codex home and indexes only the bundled Markdown
+fixtures with `mock:hash`. It registers the server using Codex's built-in MCP CLI;
+it neither reads your usual Codex configuration nor signs in. The temporary
+folder path is printed only on success. `mcp get` checks registration, not the
+server's tool responses.
+
+To try it in an interactive Codex session, run the following in the same shell
+once setup has succeeded. If prompted, authenticate for this temporary Codex
+home; the registration step itself does not require an account.
+
+```bash
+(cd -- "$session/work" && CODEX_HOME="$session/codex" codex)
+```
+
+Ask Codex to call `health` and search for the phrase `silent failure` using the
+`cognitive_os_fixture` MCP tools. Expect a green fixture indexing cycle with
+three imported notes and a search result citing a fixture file; this does not
+test semantic embeddings or production memory. After exiting Codex, remove
+the generated directory with `rm -rf -- "$session"`.
+
 ## Harness connection
 
 Configure your MCP client's stdio server entry with this process specification,
