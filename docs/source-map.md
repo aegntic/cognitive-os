@@ -13,6 +13,16 @@ durable execution separate from the memory interface.
 | Public product pages               | [AEGNTIC website source](https://github.com/aegntic/aegnticdotai) and [Cognitive OS product page](https://aegntic.ai/cognitive-os/) | The site explains the product. Implementation and current capability status belong here, not in a second copy of the specification.               |
 | Hosted evidence demo               | Separate, access-controlled deployment                                                                                              | Do not copy hosted settings, credentials, saved briefs, review state or private assets into public Git. Only share a reviewed, synthetic example. |
 
+## Prologue is a separate memory service
+
+[Prologue](https://github.com/aegntic/prologue) is a TypeScript memory service.
+Its [MemoryMatrix tools](https://github.com/aegntic/prologue/blob/master/src/mcp/tools.ts)
+can store, query, promote and delete records. The Rust MCP interface in this
+repository exposes read-only search and health over indexed Markdown. It is not
+a drop-in replacement. Before proposing a migration, identify installed harness
+consumers and check which operations they use. Do not change an existing harness
+or move its data as part of this consolidation.
+
 ## What already moved
 
 - [PR #37](https://github.com/aegntic/cognitive-os/pull/37) imported the engine
