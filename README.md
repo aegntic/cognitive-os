@@ -13,6 +13,9 @@
 
 ## Memory engine
 
+See the [source map](docs/source-map.md) for what belongs here, what has
+already moved, and what stays in a separate runtime or deployment.
+
 The executable memory tier now lives in [engine/](engine/) in this repository,
 alongside the specification and harness adapters. Its original Git history and
 MIT licence are preserved. The engine provides an M0 Rust CLI and a read-only

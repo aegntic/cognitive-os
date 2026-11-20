@@ -19,6 +19,30 @@ fn remaining(deadline: Instant) -> Result<Duration> {
         .context("memory search deadline exceeded")
 }
 
+fn fts_ranks(
+    stmt: &mut rusqlite::Statement<'_>,
+    query: &str,
+    limit: i64,
+    deadline: Instant,
+) -> Result<HashMap<i64, usize>> {
+    let rows = stmt.query_map(params![query, limit], |row| row.get::<_, i64>(0))?;
+    let mut ranks = HashMap::new();
+    for (rank, row) in rows.enumerate() {
+        remaining(deadline)?;
+        ranks.insert(row?, rank);
+    }
+    Ok(ranks)
+}
+
+fn literal_fts_query(query: &str) -> String {
+    query
+        .split_whitespace()
+        .filter(|term| term.chars().any(char::is_alphanumeric))
+        .map(|term| format!("\"{}\"", term.replace('"', "\"\"")))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 pub fn search_with_timeout(
     home: &Path,
     cfg: &Config,
@@ -49,16 +73,25 @@ pub fn search_with_timeout(
     // Keep FTS IDs, vectors and final chunk reads in one WAL snapshot.
     let snapshot = brain.conn.transaction()?;
 
-    let mut fts_rank: HashMap<i64, usize> = HashMap::new();
-    {
+    let fts_rank = {
         let mut stmt =
             snapshot.prepare("SELECT rowid FROM chunks_fts WHERE chunks_fts MATCH ?1 LIMIT ?2")?;
-        let rows = stmt.query_map(params![query, (k * 8) as i64], |r| r.get::<_, i64>(0))?;
-        for (i, id) in rows.enumerate() {
-            remaining(deadline)?;
-            fts_rank.insert(id?, i);
+        let limit = (k * 8) as i64;
+        match fts_ranks(&mut stmt, query, limit, deadline) {
+            // Keep valid FTS expressions intact. Retry only parser errors, not DB failures.
+            Err(error)
+                if matches!(
+                    error.downcast_ref::<rusqlite::Error>(),
+                    Some(rusqlite::Error::SqliteFailure(_, Some(message)))
+                        if message.starts_with("fts5: syntax error")
+                ) =>
+            {
+                remaining(deadline)?;
+                fts_ranks(&mut stmt, &literal_fts_query(query), limit, deadline)?
+            }
+            result => result?,
         }
-    }
+    };
 
     remaining(deadline)?;
     let mut vec_scores: Vec<(i64, f32)> = Vec::new();
@@ -144,6 +177,40 @@ mod tests {
         };
         assert_eq!(cycle::run(home.path(), &cfg).unwrap().status, "green");
         (home, cfg)
+    }
+
+    #[test]
+    fn unquoted_dotted_version_preserves_fts_evidence() {
+        let (home, cfg) = fixture();
+        let vault = Path::new(&cfg.vaults[0].path);
+        std::fs::write(
+            vault.join("historical.md"),
+            "# Release 0.2\nBuild command: bun run build",
+        )
+        .unwrap();
+        std::fs::write(
+            vault.join("current.md"),
+            "# Release 0.3\nBuild command: npm run build",
+        )
+        .unwrap();
+        assert_eq!(cycle::run(home.path(), &cfg).unwrap().status, "green");
+        for query in ["0.2", "build command 0.2?", "build command \"0.2\""] {
+            let result = search(home.path(), &cfg, query, 1).unwrap();
+            assert_eq!(result["_meta"]["fused_from"]["fts"], 1, "{query}");
+            let hit = &result["hits"][0];
+            assert!(
+                hit["path"].as_str().unwrap().ends_with("historical.md"),
+                "{query}"
+            );
+            assert!(
+                hit["snippet"].as_str().unwrap().contains("bun run build"),
+                "{query}"
+            );
+        }
+        assert_eq!(
+            search(home.path(), &cfg, "bun OR npm", 8).unwrap()["_meta"]["fused_from"]["fts"],
+            2
+        );
     }
 
     #[test]
